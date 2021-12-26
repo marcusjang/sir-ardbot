@@ -1,4 +1,7 @@
-const { JSDOM } = require('jsdom');
+/*
+	sites/_example.js
+		it should take document("doc") and return products
+*/
 
 const Site = require('../classes/site.js');
 const site = new Site(
@@ -9,7 +12,7 @@ const site = new Site(
 	(page = 0) => `https://example-site.tld/products/${page + 1}`
 );
 
-site.getProducts = body => {
+site.getProducts = doc => {
 	const products = [];
 
 	for (let i = 1; i <= 5; i ++) {
@@ -25,7 +28,7 @@ site.getProducts = body => {
 		products.push(product);
 	}
 
-	return products.reverse();
+	return products;
 }
 
 module.exports = site;
