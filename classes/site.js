@@ -1,3 +1,9 @@
+/*
+	classes/site.js
+		so far the only class in project
+		mostly used for its static fns? wtf
+*/
+
 class Site {
 	constructor(domain, name, country, currency, url, header = {}, hidden = false) {
 		this.domain = domain;
@@ -9,6 +15,8 @@ class Site {
 		this.hidden = hidden;
 	}
 
+	// site.newProduct()
+	// Returns an object containing common product info
 	get newProduct() {
 		return {
 			site: this.domain,

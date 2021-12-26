@@ -1,14 +1,17 @@
+/*
+	index.js
+		this is where the fun begins
+*/
+
 require('dotenv').config();
+
 const debug = require('debug')('sir-ardbot:main');
-
 const fs = require('fs/promises');
-
 const { Client, Intents, MessageEmbed } = require('discord.js');
 const CronJob = require('cron').CronJob;
 
 const crawl = require('./crawl.js');
-const knex = require('./database.js');
-
+const database = require('./database.js');
 const { getRates } = require('./currency.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -105,22 +108,7 @@ client.once('ready', () => {
 			debug(`We currently have ${channelArray.length} channels`);
 			return;
 		})
-		/*
-		*	maybe this whole part can be skipped as there is one is crawl.js?
-		* 
-		.then(() => {
-			// check for the currency exchange rates and get one if there is none
-			debug(`Checking to see if forex rate data is (still) in place...`);
-			knex.count().from('rates').then(res => {
-				if (res[0]['count(*)'] == 0) {
-					debug(`It seems there is no forex rate data, will fetch new one`);
-					getRates().then(() => true);
-				}
-				return;
-			});
-			return;
-		})
-		*/
+		.then(() => database.init()) // initialise the database
 		.then(() => {
 			// one cronjob for site each
 			// maybe there is a better way than doing it every i*2 second?

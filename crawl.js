@@ -1,13 +1,16 @@
-const debug = require('debug')('sir-ardbot:crawler');
+/*
+	crawl.js
+		this is where the crawling happens under my skin
+*/
 
+const debug = require('debug')('sir-ardbot:crawler');
 const bent = require('bent');
 const UserAgent = require('user-agents');
 const userAgent = new UserAgent({ deviceCategory: 'desktop' });
-
-const knex = require('./database.js');
-const { getRates } = require('./currency.js');
-
 const { JSDOM } = require('jsdom');
+
+const { knex } = require('./database.js');
+const { getRates } = require('./currency.js');
 
 const baseHeader = {
 	'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -44,7 +47,8 @@ const crawl = async domain => {
 			.then(stream => stream.text())
 			.then(body => new JSDOM(body))
 			.then(dom => dom.window.document)
-			.then(doc => site.getProducts(doc));
+			// reverse the order so the newer ones come up last
+			.then(doc => site.getProducts(doc).reverse());
 
 		debug(`${domain}: Successfully crawled ${results.length} products`);
 
