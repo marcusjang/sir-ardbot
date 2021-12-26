@@ -1,0 +1,11 @@
+node_modules
+
+.env
+
+data.db
+
+sites/*
+!sites/_example.js
+
+# this file is only used for developmental purposes
+crawlman.js
