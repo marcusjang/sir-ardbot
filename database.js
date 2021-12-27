@@ -3,10 +3,11 @@
 		this is where we set our database details
 */
 
+const path = require('path');
 const debug = require('debug')('sir-ardbot:database');
 const knex = require('knex')({
 	client: 'sqlite3',
-	connection: { filename: './data.db' },
+	connection: { filename: path.join(__dirname, './data.db') },
 	useNullAsDefault: true
 });
 
