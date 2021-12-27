@@ -26,7 +26,7 @@ client.once('ready', () => {
 
 	// see through ./sites/* and get files
 	debug(`Let's get through what sites we have`);
-	fs.readdir('./sites/')
+	fs.readdir(path.join(__dirname, './sites/'))
 		.then(async sitePaths => {
 			// go through existing channels cache and store them to sets
 			// these will be used to be check against with the files
