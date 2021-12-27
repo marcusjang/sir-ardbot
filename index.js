@@ -3,7 +3,8 @@
 		this is where the fun begins
 */
 
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const debug = require('debug')('sir-ardbot:main');
 const fs = require('fs/promises');
