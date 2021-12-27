@@ -75,7 +75,7 @@ client.once('ready', () => {
 					];
 
 					// set to hidden channel accordingly
-					const role = guild.roles.cache.find(process.env.ROLE_ID);
+					const role = guild.roles.cache.get(process.env.ROLE_ID);
 					if (site.hidden && process.env.ROLE_ID && role) {
 						permissions[0].deny.push('VIEW_CHANNEL');
 						permissions.push({
