@@ -123,7 +123,7 @@ client.once('ready', () => {
 
 					if (products) {
 						debug(`New products have arrived! Send them to Discord at this very moment!`);
-						channel.send({ embeds: [{
+						if (!process.env.DEV) channel.send({ embeds: [{
 							title: `New products of ${(new Date()).toLocaleString('en-GB')}`
 						}]});
 
@@ -154,7 +154,7 @@ client.once('ready', () => {
 								});
 							}
 
-							channel.send({ embeds: [embed] });
+							if (!process.env.DEV) channel.send({ embeds: [embed] });
 						}
 					}
 				});

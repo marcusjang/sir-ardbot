@@ -71,9 +71,10 @@ const crawl = async domain => {
 			rates = JSON.parse(data.data);
 		}
 
-		const products = results
-			.filter(prod => !set.has(prod.url))
-			.forEach(prod => {
+
+		const products = results.filter(prod => !set.has(prod.url));
+		
+		products.forEach(prod => {
 				prod.priceUSD = Math.round(
 						prod.price *
 						rates[prod.currency].rate /
@@ -96,7 +97,7 @@ const crawl = async domain => {
 			});
 
 			debug(`${domain}: ${entries.length} new products has been found, inserting...`);
-			await knex.insert(entries).onConflict('url').ignore().into('products');
+			if (!process.env.DEV) await knex.insert(entries).onConflict('url').ignore().into('products');
 			debug(`${domain}: Successfully inserted ${entries.length} entries into the DB`);
 
 			debug(`${domain}: Returning to Discord interface with new products...`);
