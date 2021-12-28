@@ -160,7 +160,7 @@ client.once('ready', () => {
 								});
 							}
 
-							if (index == 0) product.color = 0xEDBC11;
+							if (index == 0) embed.color = 0xEDBC11;
 
 							if (!process.env.DEV) channel.send({ embeds: [embed] });
 						});
