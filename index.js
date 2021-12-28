@@ -27,7 +27,9 @@ const init = () => {
 	// see through ./sites/* and get files
 	debug(`Let's get through what sites we have`);
 	fs.readdir(path.join(__dirname, './sites/'))
-		.then(async sitePaths => {
+		// filtering happens here for filenames starting with '-' or not ending with .js
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+		.then(async files => {
 			// go through existing channels cache and store them to sets
 			// these will be used to be check against with the files
 			debug(`Then the categories we have`);
@@ -38,13 +40,9 @@ const init = () => {
 				if (channel.type == 'GUILD_TEXT') channels.add(channel.name);
 			}
 
-			debug(`Found ${sitePaths.length} site files`);
-			for (const sitePath of sitePaths) {
-				// skip if filename starts with '-'
-				if (sitePath.charAt(0) == '_') continue;
-				// or does not end with js
-				if (sitePath.match(/(?:\.([^.]+))?$/)[1] != 'js') continue;
-				const site = require(`./sites/${sitePath}`);
+			debug(`Found ${files.length} site files`);
+			for (const file of files) {
+				const site = require(`./sites/${file}`);
 
 				// just some stylistic choices
 				const country = site.country.toUpperCase();
@@ -52,9 +50,9 @@ const init = () => {
 				if (!categories.has(country)) {
 					// create national categories if there is none
 					// category var is set to the new category
-					debug(`${sitePaths.length} does not exist yet, creating...`);
+					debug(`${country} does not exist yet, creating...`);
 					category = await guild.channels.create(country, { type: 'GUILD_CATEGORY' });
-					debug(`${sitePaths.length} successfully created`);
+					debug(`${country} successfully created`);
 				}
 
 				// same as above
