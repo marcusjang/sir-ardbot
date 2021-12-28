@@ -137,7 +137,7 @@ const init = client => {
 									inline: true
 								}],
 								timestamp: new Date()
-							}
+							};
 
 							if (product.size || product.abv) {
 								embed.fields.push({

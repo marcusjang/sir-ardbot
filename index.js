@@ -8,7 +8,8 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const debug = require('debug')('sir-ardbot:discord');
-const { Client, Intents, MessageEmbed } = require('discord.js');
+const { Client, Intents } = require('discord.js');
+
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -16,6 +17,19 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 client.once('ready', () => {
 	debug(`Sir Ardbot is ready on Discord! Initialising...`);
 	require('./init.js')(client);
+});
+
+// Here we handle commands
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName == 'wb') {
+		const query = interaction.options.getString('query');
+		if (!query) return; // just in case?
+		if (query.match(/^\d+$/)) {
+			interaction.reply(`https://www.whiskybase.com/whiskies/whisky/${query}`);
+		} 
+	}
 });
 
 // this is where the fun begins
