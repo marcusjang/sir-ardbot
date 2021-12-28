@@ -130,12 +130,10 @@ client.once('ready', () => {
 						}]});
 						*/
 
-						for (const product of products) {
+						products.forEach((product, index) => {
 							const embed = {
 								title: product.name,
 								url: product.url,
-								// probably less clutter is better
-								// author: { name: product.site },
 								thumbnail: { url: product.img },
 								fields: [{
 									name: 'Price (excl. VAT)',
@@ -157,8 +155,10 @@ client.once('ready', () => {
 								});
 							}
 
+							if (index == 0) product.color = 0xEDBC11;
+
 							if (!process.env.DEV) channel.send({ embeds: [embed] });
-						}
+						});
 					}
 				});
 
