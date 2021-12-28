@@ -22,6 +22,7 @@ client.once('ready', () => {
 	debug(`Sir Ardbot is ready on Discord!`);
 	// guild is stored in the .env 
 	const guild = client.guilds.cache.get(process.env.GUILD_ID);
+	const roleIDs = (process.env.ROLE_ID || '').split(',');
 	const channelArray = [];
 
 	// see through ./sites/* and get files
@@ -75,13 +76,17 @@ client.once('ready', () => {
 					];
 
 					// set to hidden channel accordingly
-					const role = guild.roles.cache.get(process.env.ROLE_ID);
-					if (site.hidden && process.env.ROLE_ID && role) {
+					if (site.hidden && roleIDs && roleIDs[0] != '') {
 						permissions[0].deny.push('VIEW_CHANNEL');
-						permissions.push({
-							id: process.env.ROLE_ID,
-							allow: [ 'VIEW_CHANNEL' ]
-						});
+						for (const roleID of roleIDs) {
+							const role = guild.roles.cache.get(roleID);
+							if (roleID && role) {
+								permissions.push({
+									id: roleID,
+									allow: [ 'VIEW_CHANNEL' ]
+								});
+							}
+						}
 					} else {
 						permissions[0].allow.push('VIEW_CHANNEL');
 					}
