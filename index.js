@@ -124,9 +124,11 @@ client.once('ready', () => {
 
 					if (products) {
 						debug(`New products have arrived! Send them to Discord at this very moment!`);
+						/* for less clutter
 						if (!process.env.DEV) channel.send({ embeds: [{
 							title: `New products of ${(new Date()).toLocaleString('en-GB')}`
 						}]});
+						*/
 
 						for (const product of products) {
 							const embed = {
