@@ -58,7 +58,7 @@ client.once('ready', () => {
 				}
 
 				// same as above
-				const siteName = site.name.toLowerCase().replace(/\s/g, '-');
+				const siteName = site.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w-]/g, '');
 				let channel = guild.channels.cache.find(ch => ch.name == siteName);
 				if (!channels.has(siteName)) {
 					// set barebone permissions
