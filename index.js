@@ -17,8 +17,7 @@ const { getRates } = require('./currency.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-// everything starts when the Discord client is ready
-client.once('ready', () => {
+const init = () => {
 	debug(`Sir Ardbot is ready on Discord!`);
 	// guild is stored in the .env 
 	const guild = client.guilds.cache.get(process.env.GUILD_ID);
@@ -171,7 +170,10 @@ client.once('ready', () => {
 			}
 			return;
 		});
-});
+};
+
+// everything starts when the Discord client is ready
+client.once('ready', init);
 
 // this is where the fun begins
 client.login(process.env.DISCORD_TOKEN);
