@@ -9,6 +9,17 @@ const debug = require('debug')('sir-ardbot:main');
 const init = client => {
 	const fs = require('fs/promises');
 
+	// dynamically reads commands now
+	client.commands = new Map();
+	fs.readdir(path.join(__dirname, './commands/'))
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+		.then(files => {
+			for (const file of files) {
+				const command = require(`./commands/${file}`);
+				client.commands.set(command.data.name, command);
+			}
+		});
+
 	// guild is stored in the .env 
 	const guild = client.guilds.cache.get(process.env.GUILD_ID);
 	const roleIDs = (process.env.ROLE_ID || '').split(',');
