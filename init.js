@@ -174,7 +174,7 @@ const init = client => {
 						});
 
 						if (!process.env.DEV) {
-							for (const embeds in embedsArray) {
+							for (const embeds of embedsArray) {
 								channel.send({ embeds: embeds });
 							}
 						} else {
