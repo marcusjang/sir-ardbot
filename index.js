@@ -23,14 +23,14 @@ client.once('ready', () => {
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
-	if (interaction.commandName == 'wb') {
-		const query = interaction.options.getString('query');
-		if (!query) return; // just in case?
-		if (query.match(/^\d+$/)) {
-			interaction.reply(`Perhaps this is [the bottle](https://www.whiskybase.com/whiskies/whisky/${query}) you are looking for?`);
-		} else {
-			interaction.reply({ content: 'Sorry chap, but for the time I only accept `/wb <WBID>` query', ephemeral: true });
-		}
+	const command = client.commands.get(interaction.commandName);
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch(e) {
+		console.error(e);
+		await interaction.reply({ content: 'Oh no, something has gone awry! I will make sure this incident will be reported.', ephemeral: true })
 	}
 });
 

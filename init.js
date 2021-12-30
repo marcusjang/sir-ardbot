@@ -9,6 +9,17 @@ const debug = require('debug')('sir-ardbot:main');
 const init = client => {
 	const fs = require('fs/promises');
 
+	// dynamically reads commands now
+	client.commands = new Map();
+	fs.readdir(path.join(__dirname, './commands/'))
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+		.then(files => {
+			for (const file of files) {
+				const command = require(`./commands/${file}`);
+				client.commands.set(command.data.name, command);
+			}
+		});
+
 	// guild is stored in the .env 
 	const guild = client.guilds.cache.get(process.env.GUILD_ID);
 	const roleIDs = (process.env.ROLE_ID || '').split(',');
@@ -126,6 +137,8 @@ const init = client => {
 						}]});
 						*/
 
+						const embedsArray = [];
+
 						products.forEach((product, index) => {
 							const embed = {
 								title: product.name,
@@ -153,8 +166,20 @@ const init = client => {
 
 							if (index == 0) embed.color = 0xEDBC11;
 
-							if (!process.env.DEV) channel.send({ embeds: [embed] });
+							// 10 is Discord embed length limit apparently
+							// well, at least coording to the link below, so we chop it up
+							// https://birdie0.github.io/discord-webhooks-guide/other/field_limits.html
+							if (index % 10 == 0) embedsArray.push([]);
+							embedsArray[Math.floor(index / 10)].push(embed);
 						});
+
+						if (!process.env.DEV) {
+							for (const embeds in embedsArray) {
+								channel.send({ embeds: embeds });
+							}
+						} else {
+							console.log(embedsArray);
+						}
 					}
 				});
 
