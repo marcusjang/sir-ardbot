@@ -126,6 +126,8 @@ const init = client => {
 						}]});
 						*/
 
+						const embedsArray = [];
+
 						products.forEach((product, index) => {
 							const embed = {
 								title: product.name,
@@ -153,8 +155,20 @@ const init = client => {
 
 							if (index == 0) embed.color = 0xEDBC11;
 
-							if (!process.env.DEV) channel.send({ embeds: [embed] });
+							// 10 is Discord embed length limit apparently
+							// well, at least coording to the link below, so we chop it up
+							// https://birdie0.github.io/discord-webhooks-guide/other/field_limits.html
+							if (index % 10 == 0) embedsArray.push([]);
+							embedsArray[Math.floor(index / 10)].push(embed);
 						});
+
+						if (!process.env.DEV) {
+							for (const embeds in embedsArray) {
+								channel.send({ embeds: embeds });
+							}
+						} else {
+							console.log(embedsArray);
+						}
 					}
 				});
 
