@@ -56,8 +56,14 @@ const init = client => {
 					debug(`${country} successfully created`);
 				}
 
-				// same as above
-				const siteName = site.name.toLowerCase().replace(/\s/g, '-').replace(/[^\w-]/g, '');
+				// better channel name sanitisation
+				const siteName =
+					site.name
+						.toLowerCase()				// first to lowercase (stylistic choices)
+						.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
+						.replace(/\s/g, '-')		// then replace space into dash
+						.replace(/-+/g, '-');		// then remove duplicate dashes
+
 				let channel = guild.channels.cache.find(ch => ch.name == siteName);
 				if (!channels.has(siteName)) {
 					// set barebone permissions
