@@ -14,7 +14,7 @@ const discord = require('./discord.js');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const init = async () => {
-	require('./database.js').init(); // initialise the database
+	await require('./database.js').init(); // initialise the database
 
 	// see through ./sites/* and get files
 	debug(`Let's get through what sites we have`);
