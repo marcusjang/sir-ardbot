@@ -6,6 +6,8 @@
 const path = require('path');
 const debug = require('debug')('sir-ardbot:main');
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 const init = client => {
 	const fs = require('fs/promises');
 
@@ -121,15 +123,16 @@ const init = client => {
 		.then(() => require('./database.js').init()) // initialise the database
 		.then(() => {
 			// one cronjob for site each
-			// maybe there is a better way than doing it every i*2 second?
 			debug(`Assigning cronjobs in place`);
-			for (let i = 0; i < channelArray.length; i++){
+			const unitDelay = Math.floor((60 * 1000) / channelArray.length); // 60 seconds = 1 minute
+			debug(`unitDelay is ${unitDelay}ms per site`);
+			channelArray.forEach((channelObj, index) => {
 				const CronJob = require('cron').CronJob;
-
-				const { site, channelId } = channelArray[i];
+				const { site, channelId } = channelObj;
 				const channel = guild.channels.cache.get(channelId);
 
-				const cron = new CronJob(`${i*2} */2 * * * *`, async () => {
+				const cron = new CronJob(`*/2 * * * *`, async () => {
+					await delay(unitDelay * index + Math.floor(Math.random()*500)); // add some random delay
 					debug(`Begin crawling for ${site}!`);
 
 					const crawl = require('./crawl.js');
@@ -137,11 +140,6 @@ const init = client => {
 
 					if (products) {
 						debug(`New products have arrived! Send them to Discord at this very moment!`);
-						/* for less clutter
-						if (!process.env.DEV) channel.send({ embeds: [{
-							title: `New products of ${(new Date()).toLocaleString('en-GB')}`
-						}]});
-						*/
 
 						const embedsArray = [];
 
@@ -190,7 +188,7 @@ const init = client => {
 				});
 
 				cron.start();
-			}
+			});
 			return;
 		});
 };
