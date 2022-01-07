@@ -2,10 +2,56 @@
 	discord.js
 		this is where the discord things happen
 */
+
 const debug = require('debug')('sir-ardbot:discord');
+const path = require('path');
+const fs = require('fs/promises');
+const { Client, Intents } = require('discord.js');
+
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+// everything starts when the Discord client is ready
+client.once('ready', () => {
+	debug(`Sir Ardbot is ready on Discord! Initialising...`);
+
+	// dynamically reads commands
+	client.commands = new Map();
+	fs.readdir(path.join(__dirname, './commands/'))
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+		.then(files => {
+			debug(`Found ${files.length} command(s), setting...`);
+			for (const file of files) {
+				const command = require(`./commands/${file}`);
+				client.commands.set(command.data.name, command);
+			}
+		});
+
+	require('./init.js')(client);
+});
+
+// Here we handle commands
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
+
+	const command = client.commands.get(interaction.commandName);
+	if (!command) return;
+
+	try {
+		await command.execute(interaction);
+	} catch(e) {
+		console.error(e);
+		await interaction.reply({
+			content: 'Oh no, something has gone awry! I will make sure this incident will be reported.',
+			ephemeral: true
+		});
+	}
+});
+
 
 module.exports = {
-	initChannels: async (client, files) => {
+	client: client,
+	login: token => client.login(token),
+	initChannels: async (files) => {
 		// guild is stored in the .env 
 		const guild = client.guilds.cache.get(process.env.GUILD_ID);
 		const roleIDs = (process.env.ROLE_ID || '').split(',');
