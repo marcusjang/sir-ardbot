@@ -3,8 +3,8 @@
 		this is where the fun really is
 */
 
-const path = require('path');
 const debug = require('debug')('sir-ardbot:main');
+const path = require('path');
 const fs = require('fs/promises');
 const { CronJob } = require('cron');
 
@@ -13,26 +13,15 @@ const discord = require('./discord.js');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-const init = client => {
-	// dynamically reads commands now
-	client.commands = new Map();
-	fs.readdir(path.join(__dirname, './commands/'))
-		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => {
-			for (const file of files) {
-				const command = require(`./commands/${file}`);
-				client.commands.set(command.data.name, command);
-			}
-		});
-
-	require('./database.js').init(); // initialise the database
+const init = async () => {
+	await require('./database.js').init(); // initialise the database
 
 	// see through ./sites/* and get files
 	debug(`Let's get through what sites we have`);
 	fs.readdir(path.join(__dirname, './sites/'))
 		// filtering happens here for filenames starting with '-' or not ending with .js
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => discord.initChannels(client, files))
+		.then(files => discord.initChannels(files))
 		.then(channelArray => {
 			const unitDelay = Math.floor((60 * 1000) / channelArray.length); // 60 seconds = 1 minute
 			debug(`unit delay is ${unitDelay}ms per site`);

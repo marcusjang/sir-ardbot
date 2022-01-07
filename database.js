@@ -11,9 +11,9 @@ const knex = require('knex')({
 	useNullAsDefault: true
 });
 
-const init = () => {
+const init = async () => {
 	// check if "products" table exists and create one if not
-	knex.schema.hasTable('products').then(async exists => {
+	await knex.schema.hasTable('products').then(async exists => {
 		if (!exists) {
 			await knex.schema.createTable('products', table => {
 				table.increments();
@@ -29,7 +29,7 @@ const init = () => {
 	});
 
 	// the same as above but with "rates"
-	knex.schema.hasTable('rates').then(async exists => {
+	await knex.schema.hasTable('rates').then(async exists => {
 		if (!exists) {
 			await knex.schema.createTable('rates', table => {
 				table.increments();
