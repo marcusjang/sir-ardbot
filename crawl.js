@@ -107,7 +107,7 @@ const crawl = async domain => {
 	} catch(err) {
 		// actively ignore conflict messages
 		if (err.code != 'SQLITE_CONSTRAINT') {
-			console.error(`Failed with the following:`);
+			console.error(`${domain} Failed with the following:`);
 			console.error(err);
 		}
 	}
