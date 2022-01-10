@@ -184,7 +184,7 @@ module.exports = {
 			embedsArray[Math.floor(index / 10)].push(embed);
 		});
 
-		if (!process.env.DEV) {
+		if (!(process.env.DEV === 'true')) {
 			for (const embeds of embedsArray) {
 				channel.send({ embeds: embeds });
 			}

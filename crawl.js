@@ -97,7 +97,7 @@ const crawl = async domain => {
 			});
 
 			debug(`${domain}: ${entries.length} new products has been found, inserting...`);
-			if (!process.env.DEV) await knex.insert(entries).onConflict('url').ignore().into('products');
+			if (!(process.env.DEV === 'true')) await knex.insert(entries).onConflict('url').ignore().into('products');
 			debug(`${domain}: Successfully inserted ${entries.length} entries into the DB`);
 
 			debug(`${domain}: Returning to Discord interface with new products...`);
