@@ -73,7 +73,7 @@ module.exports = {
 			const site = require(`./sites/${file}`);
 
 			// just some stylistic choices
-			const country = site.country.toUpperCase();
+			const country = site.meta.country.toUpperCase();
 			let category = guild.channels.cache.find(ch => ch.name == country);
 			if (!categories.has(country)) {
 				// create national categories if there is none
@@ -85,7 +85,7 @@ module.exports = {
 
 			// better channel name sanitisation
 			const siteName =
-				site.name
+				site.meta.name
 					.toLowerCase()				// first to lowercase (stylistic choices)
 					.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
 					.replace(/\s/g, '-')		// then replace space into dash
@@ -128,7 +128,7 @@ module.exports = {
 				channel = await guild.channels.create(siteName, {
 					type: 'GUILD_TEXT',
 					parent: category.id,
-					topic: site.url(),
+					topic: site.meta.url,
 					permissionOverwrites: permissions
 				});
 				debug(`${siteName} successfully created`);

@@ -5,14 +5,21 @@
 */
 
 class Site {
-	constructor(domain, name, country, currency, url, header = {}, hidden = false) {
+	constructor(domain, data) {
 		this.domain = domain;
-		this.name = name;
-		this.country = country;
-		this.currency = currency;
-		this.url = url;
-		this.header = header;
-		this.hidden = hidden;
+		this.meta = {
+			name: data.name,
+			country: data.country,
+			currency: data.currency,
+			euroSeparator: data.euroSeparator || false,
+			vatRate: data.vatRate || 1
+		}
+		this.limit = (data.limit === undefined) ? 25 : data.limit;
+		this.productsSelector = data.productsSelector;
+		this.parseProduct = data.parseProduct;
+		this.url = (typeof data.url === 'function') ? data.url() : data.url;
+		this.cookies = data.cookies || null;
+		this.hidden = data.hidden || false;
 	}
 
 	// site.newProduct()
@@ -20,9 +27,45 @@ class Site {
 	get newProduct() {
 		return {
 			site: this.domain,
-			currency: this.currency,
-			available: true
+			currency: this.meta.currency
 		}
+	}
+
+	get parseProductFn() {
+		return this.parseProduct.toString()
+			.replace(/^[^\{]+\{(.+)\}$/s, '$1')
+			.replace(/\t/g, '')
+			.trim();
+	}
+
+	mapProducts(products) {
+		const results = products
+			.filter(product => product !== false)
+			.map(product => {
+				if (product.price) product.price = this.parsePrice(product.price);
+				if (product.size) product.size = this.parseSize(product.size);
+				if (product.abv) product.abv = this.parseABV(product.abv);
+				if (product.url.match(/^\/[^\/]/)) product.url = this.absUrl(product.url);
+				if (product.img && product.img.match(/^\/[^\/]/)) product.img = this.absUrl(product.img);
+				if (product.img && product.img.match(/^\/\/cdn/)) product.img = 'https' + product.img;
+				return { ...this.newProduct, ...product };
+			})
+			.filter(product => product.url && (!product.size || product.size > 100));
+		return (this.limit) ? results.slice(0, this.limit) : results;
+	}
+
+	getProducts(doc) {
+		return this.mapProducts(
+					Array.from(doc.querySelectorAll(this.productsSelector))
+						.map(this.parseProduct)
+				);
+	}
+
+	getPuppet(page) {
+		return page.$$eval(this.productsSelector, (products, parseProduct) => {
+			return products.map(prod => new Function('prod', parseProduct)(prod));
+		}, this.parseProductFn)
+			.then(products => this.mapProducts(products));
 	}
 
 	// absUrl(string)
@@ -30,6 +73,18 @@ class Site {
 	//   returns: string
 	absUrl(urlString) {
 		return (!urlString) ? null : 'https://www.' + this.domain + urlString;
+	}
+
+	parseSize(sizeString) {
+		return Site.parseSize(sizeString);
+	}
+
+	parseABV(abvString) {
+		return Site.parseABV(abvString);
+	}
+
+	parsePrice(priceString) {
+		return Site.parsePrice(priceString, this.meta.euroSeparator, this.meta.vatRate);
 	}
 
 	// parseSize(string)

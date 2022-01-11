@@ -6,6 +6,7 @@
 const debug = require('debug')('sir-ardbot:main');
 const path = require('path');
 const fs = require('fs/promises');
+const puppeteer = require('puppeteer');
 
 const crawl = require('./crawl.js');
 const discord = require('./discord.js');
@@ -45,6 +46,8 @@ const work = () => {
 const init = async () => {
 	await require('./database.js').init(); // initialise the database
 
+	const browser = await puppeteer.launch();
+
 	// see through ./sites/* and get files
 	debug(`Let's get through what sites we have`);
 	fs.readdir(path.join(__dirname, './sites/'))
@@ -57,7 +60,7 @@ const init = async () => {
 
 			queue.array = channelArray.map(channelObj => {
 				const { site, channel } = channelObj;
-				return () => crawl(site).then(products => discord.sendProducts(channel, products));
+				return () => crawl(browser, site).then(products => discord.sendProducts(channel, products));
 			});
 			queue.arrayCopy = queue.array.map(el => el); // just to copy the array
 			work();
