@@ -62,10 +62,12 @@ class Site {
 	}
 
 	getPuppet(page) {
-		return page.$$eval(this.productsSelector, (products, parseProduct) => {
-			return products.map(prod => new Function('prod', parseProduct)(prod));
-		}, this.parseProductFn)
-			.then(products => this.mapProducts(products));
+		return page.waitForSelector(this.productsSelector).then(() => {
+			return page.$$eval(this.productsSelector, (products, parseProduct) => {
+				return products.map(prod => new Function('prod', parseProduct)(prod));
+			}, this.parseProductFn)
+				.then(products => this.mapProducts(products));
+		});
 	}
 
 	// absUrl(string)
