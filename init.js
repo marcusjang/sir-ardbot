@@ -55,7 +55,7 @@ const init = async () => {
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 		.then(files => discord.initChannels(files))
 		.then(channelArray => {
-			queue.unitDelay = Math.floor(period / channelArray.length + Math.random()*500); // 60 seconds = 1 minute
+			queue.unitDelay = Math.floor(period / channelArray.length); // 60 seconds = 1 minute
 			debug(`unit delay is ${queue.unitDelay}ms per site`);
 
 			queue.array = channelArray.map(channelObj => {
