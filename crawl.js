@@ -43,7 +43,6 @@ module.exports = (browser, domain) => {
 						});
 						
 						return page.goto(site.url, { waitUntil: 'networkidle2' })
-							.then(() => page.evaluate(() => console.log(window.location.href)))
 							.catch(err => {
 								if (err.name == 'TimeoutError') {
 									debug(`${domain}: We somehow timed out?!`);
