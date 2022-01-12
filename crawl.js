@@ -16,7 +16,7 @@ module.exports = (browser, domain) => {
 				browser.newPage()
 					.then(page => {
 							return Promise.all([
-								page.setDefaultTimeout(8000),
+								page.setDefaultTimeout(+process.env.PUPPETEER_TIMEOUT),
 								page.setRequestInterception(true),
 								(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
 							]).then(() => page);
