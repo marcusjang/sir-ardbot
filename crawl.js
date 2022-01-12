@@ -63,6 +63,7 @@ module.exports = (browser, domain) => {
 			])
 			.then(parcel => {
 				const [ results, record, rates ] = parcel;
+				if (!results) return false;
 				debug(`${domain}: Reading through the database to see if any has been seen...`);
 				const set = new Set(record.map(el => el.url));
 				const products = results.filter(prod => !set.has(prod.url));

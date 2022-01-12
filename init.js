@@ -77,7 +77,10 @@ module.exports = () => {
 
 						queue.array = channelArray.map(channelObj => {
 							const { site, channel } = channelObj;
-							return () => crawl(browser, site).then(products => discord.sendProducts(channel, products));
+							return () => crawl(browser, site).then(products => {
+								if (!products) return false;
+								return discord.sendProducts(channel, products);
+							});
 						});
 						queue.arrayCopy = queue.array.map(el => el); // just to copy the array
 						work();
