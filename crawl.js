@@ -19,43 +19,50 @@ module.exports = (browser, domain) => {
 								page.setDefaultTimeout(8000),
 								page.setRequestInterception(true),
 								(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
-							])
-								.catch(err => {
-									if (err.name == 'TimeoutError') {
-										debug(`${domain}: We somehow timed out?!`);
-									} else {
-										console.error(err);
-									}
-									return page.close();
-								})
-								.then(() => page);
+							]).then(() => page);
 						})
 					.then(page => {
+						/* for debuging purposes as well
+						page.on('console', (msg) => {
+							for (let i = 0; i < msg.args().length; ++i)
+								console.log(`${i}: ${msg.args()[i]}`);
+						});
+						*/
+
 						page.on('request', req => {
 							req._interceptionHandled = false;
-							if (['image', 'stylesheet', 'font', 'other'].includes(req.resourceType())) {
+							if (['image', 'media', 'stylesheet', 'font', 'other'].includes(req.resourceType())) {
 								//console.log('DENIED', req.url());
 								// left here for debug purposes
 								req.respond({ status: 200, body: '' });
 							} else {
-								//console.log('SURE', req.url());
+								//if(req.resourceType() == 'document') console.log('SURE', req.url());
 								// ditto
 								req.continue();
 							}
 						});
 						
 						return page.goto(site.url, { waitUntil: 'networkidle2' })
-							.then(() => site.getPuppet(page)
-								.then(results => {
-									debug(`${domain}: Successfully crawled ${results.length} products`);
-									return results.reverse();
-								})
-								.catch(err => console.error(err.message))
-								.finally(() => {
-									debug(`${domain}: Closing page...`);
-									return page.close();
-								})
-							);
+							.then(() => page.evaluate(() => console.log(window.location.href)))
+							.catch(err => {
+								if (err.name == 'TimeoutError') {
+									debug(`${domain}: We somehow timed out?!`);
+								} else {
+									console.error(err.message);
+								}
+							})
+							.then(() => {
+								return site.getPuppet(page)
+									.then(results => {
+										debug(`${domain}: Successfully crawled ${results.length} products`);
+										return results.reverse();
+									})
+									.catch(err => console.error(err.message))
+									.finally(() => {
+										debug(`${domain}: Closing page...`);
+										return page.close();
+									});
+								});
 					})
 					,
 				knex.where('site', domain).select('url').from('products'),
