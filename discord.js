@@ -184,14 +184,12 @@ module.exports = {
 			embedsArray[Math.floor(index / 10)].push(embed);
 		});
 
-		if (!(process.env.DEV === 'true')) {
-			for (const embeds of embedsArray) {
-				channel.send({ embeds: embeds });
+		return Promise.all(embedsArray.map(embeds => {
+			if (!(process.env.DEV === 'true')) {
+				return channel.send({ embeds: embeds });
+			} else {
+				return embeds.forEach(embed => console.log(embed.title, embed.timestamp, embed.url));
 			}
-		} else {
-			console.log(embedsArray);
-		}
-
-		return true;
+		}));
 	}
 };
