@@ -10,25 +10,6 @@ const { Client, Intents } = require('discord.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-// everything starts when the Discord client is ready
-client.once('ready', () => {
-	debug(`Sir Ardbot is ready on Discord! Initialising...`);
-
-	// dynamically reads commands
-	client.commands = new Map();
-	fs.readdir(path.join(__dirname, './commands/'))
-		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => {
-			debug(`Found ${files.length} command(s), setting...`);
-			for (const file of files) {
-				const command = require(`./commands/${file}`);
-				client.commands.set(command.data.name, command);
-			}
-		});
-
-	require('./init.js')(client);
-});
-
 // Here we handle commands
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;

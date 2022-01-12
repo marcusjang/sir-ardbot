@@ -27,7 +27,7 @@ const future = new Date(today.setDate(today.getDate() - today.getDay())+3*24*60*
 const url = 'https://unipass.customs.go.kr:38010/ext/rest/trifFxrtInfoQry/retrieveTrifFxrtInfo'
 			+ `?crkyCn=${process.env.UNIPASS_TOKEN}&imexTp=2&qryYymmDd=${toYyMMdd()}`;
 
-module.exports = knex.where('expires', nextSunday.valueOf()).from('rates')
+module.exports = () => knex.where('expires', nextSunday.valueOf()).from('rates')
 	.then(currentRates => {
 		if (currentRates.length == 0) {
 			debug(`No current rates were found in the cache, fetching...`);

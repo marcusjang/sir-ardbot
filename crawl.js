@@ -17,9 +17,8 @@ module.exports = (browser, domain) => {
 					.then(page => {
 							return Promise.all([
 								page.setDefaultTimeout(8000),
-								(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve(),
-								page.goto(site.url, { waitUntil: 'networkidle2' }),
-								page.exposeFunction('parseProduct', (prod) => prod.dataset.name)
+								page.setRequestInterception(true),
+								(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
 							])
 								.catch(err => {
 									if (err.name == 'TimeoutError') {
@@ -27,21 +26,46 @@ module.exports = (browser, domain) => {
 									} else {
 										console.error(err);
 									}
+									return page.close();
 								})
 								.then(() => page);
 						})
-					.then(page => site.getPuppet(page).finally(() => page.close())),
+					.then(page => {
+						page.on('request', req => {
+							req._interceptionHandled = false;
+							if (['image', 'stylesheet', 'font', 'other'].includes(req.resourceType())) {
+								//console.log('DENIED', req.url());
+								// left here for debug purposes
+								req.respond({ status: 200, body: '' });
+							} else {
+								//console.log('SURE', req.url());
+								// ditto
+								req.continue();
+							}
+						});
+						
+						return page.goto(site.url, { waitUntil: 'networkidle2' })
+							.then(() => site.getPuppet(page)
+								.then(results => {
+									debug(`${domain}: Successfully crawled ${results.length} products`);
+									return results.reverse();
+								})
+								.catch(err => console.error(err.message))
+								.finally(() => {
+									debug(`${domain}: Closing page...`);
+									return page.close();
+								})
+							);
+					})
+					,
 				knex.where('site', domain).select('url').from('products'),
-				getRates
+				getRates()
 			])
 			.then(parcel => {
 				const [ results, record, rates ] = parcel;
-				debug(`${domain}: Successfully crawled ${results.length} products`);
 				debug(`${domain}: Reading through the database to see if any has been seen...`);
 				const set = new Set(record.map(el => el.url));
-				const products = results
-					.reverse()
-					.filter(prod => !set.has(prod.url));
+				const products = results.filter(prod => !set.has(prod.url));
 
 				products.forEach(prod => {
 					prod.priceUSD = Math.round(
@@ -64,7 +88,7 @@ module.exports = (browser, domain) => {
 						}
 					});
 
-					if (!(process.env.DEV === 'true')) {
+					if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
 						debug(`${domain}: ${entries.length} new products has been found, inserting...`);
 						return knex.insert(entries).onConflict('url').ignore().into('products')
 							.then(() => {

@@ -1,0 +1,4 @@
+[submodule "sites"]
+	path = sites
+	url = git@github.com:marcusjang/sir-ardbot-sites.git
+	branch = puppeteer

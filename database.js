@@ -11,39 +11,37 @@ const knex = require('knex')({
 	useNullAsDefault: true
 });
 
-const init = async () => {
-	// check if "products" table exists and create one if not
-	await knex.schema.hasTable('products').then(async exists => {
-		if (!exists) {
-			await knex.schema.createTable('products', table => {
-				table.increments();
-				table.string('site');
-				table.string('url').unique();
-				table.boolean('available');
-				table.timestamp('created_at').defaultTo(knex.fn.now());
-			});
-			debug(`Table "products" was missing, so new one has been created`);
-		} else {
-			debug(`Table "products" is thankfully in place`);
-		}
-	});
+module.exports = {
+	knex: knex,
+	init: () => Promise.all([
+			knex.schema.hasTable('products'),
+			knex.schema.hasTable('rates')
+		]).then(exists => {
+			// products table
+			if (!exists[0]) {
+				exists[0] = knex.schema.createTable('products', table => {
+					table.increments();
+					table.string('site');
+					table.string('url').unique();
+					table.boolean('available');
+					table.timestamp('created_at').defaultTo(knex.fn.now());
+				}).then(() => debug(`Table "products" was missing, so new one has been created`));
+			} else {
+				exists[0] = Promise.resolve(debug(`Table "products" is thankfully in place`));
+			}
 
-	// the same as above but with "rates"
-	await knex.schema.hasTable('rates').then(async exists => {
-		if (!exists) {
-			await knex.schema.createTable('rates', table => {
-				table.increments();
-				table.date('expires').unique();
-				table.text('data');
-				table.timestamp('created_at').defaultTo(knex.fn.now());
-			});
-			debug(`Table "rates" was missing, so new one has been created`);
-		} else {
-			debug(`Table "rates" is thankfully in place`);
-		}
-	});
+			// rates table
+			if (!exists[1]) {
+				exists[1] = knex.schema.createTable('rates', table => {
+					table.increments();
+					table.date('expires').unique();
+					table.text('data');
+					table.timestamp('created_at').defaultTo(knex.fn.now());
+				}).then(() => debug(`Table "rates" was missing, so new one has been created`));
+			} else {
+				exists[1] = Promise.resolve(debug(`Table "rates" is thankfully in place`));
+			}
 
-	return true;
+			return Promise.all(exists);
+		})
 }
-
-module.exports = { knex, init };

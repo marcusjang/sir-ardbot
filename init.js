@@ -1,5 +1,5 @@
 /*
-	database.js
+	init.js
 		this is where the fun really is
 */
 
@@ -10,6 +10,7 @@ const puppeteer = require('puppeteer');
 
 const crawl = require('./crawl.js');
 const discord = require('./discord.js');
+const database = require('./database.js');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -43,28 +44,43 @@ const work = () => {
 	return true;
 };
 
-const init = async () => {
-	await require('./database.js').init(); // initialise the database
+const client = discord.client;
 
-	const browser = await puppeteer.launch();
+module.exports = () => {
+	debug(`Sir Ardbot is ready on Discord! Initialising...`);
 
-	// see through ./sites/* and get files
-	debug(`Let's get through what sites we have`);
-	fs.readdir(path.join(__dirname, './sites/'))
-		// filtering happens here for filenames starting with '-' or not ending with .js
+	// dynamically reads commands
+	client.commands = new Map();
+	fs.readdir(path.join(__dirname, './commands/'))
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => discord.initChannels(files))
-		.then(channelArray => {
-			queue.unitDelay = Math.floor(period / channelArray.length); // 60 seconds = 1 minute
-			debug(`unit delay is ${queue.unitDelay}ms per site`);
+		.then(files => {
+			debug(`Found ${files.length} command(s), setting...`);
+			for (const file of files) {
+				const command = require(`./commands/${file}`);
+				client.commands.set(command.data.name, command);
+			}
+		})
+		.then(() => Promise.all([
+				database.init(), // initialise the database
+				puppeteer.launch({ args: [ '--no-sandbox', '--disable-setuid-sandbox' ] })
+			]).then(init => {
+				const browser = init[1];
+				// see through ./sites/* and get files
+				debug(`Let's get through what sites we have`);
+				return fs.readdir(path.join(__dirname, './sites/'))
+					// filtering happens here for filenames starting with '-' or not ending with .js
+					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+					.then(files => discord.initChannels(files))
+					.then(channelArray => {
+						queue.unitDelay = Math.floor(period / channelArray.length); // 60 seconds = 1 minute
+						debug(`unit delay is ${queue.unitDelay}ms per site`);
 
-			queue.array = channelArray.map(channelObj => {
-				const { site, channel } = channelObj;
-				return () => crawl(browser, site).then(products => discord.sendProducts(channel, products));
-			});
-			queue.arrayCopy = queue.array.map(el => el); // just to copy the array
-			work();
-		});
-};
-
-module.exports = init;
+						queue.array = channelArray.map(channelObj => {
+							const { site, channel } = channelObj;
+							return () => crawl(browser, site).then(products => discord.sendProducts(channel, products));
+						});
+						queue.arrayCopy = queue.array.map(el => el); // just to copy the array
+						work();
+					});
+			}));
+}

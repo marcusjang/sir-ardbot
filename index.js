@@ -14,6 +14,11 @@ const discord = require('./discord.js');
 // the starting point
 discord.login(process.env.DISCORD_TOKEN);
 
+
+// everything starts when the Discord client is ready
+discord.client.once('ready', require('./init.js'));
+
+
 // just some hacky shit to make JSDOM shut up
 const consoleError = console.error;
 console.error = err => {
