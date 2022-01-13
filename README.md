@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/qcfDqhm.png" width="350"></p>
+<p align="center"><img src="https://user-images.githubusercontent.com/10116562/149304480-e64148b6-880a-4a28-bf6a-71abbae7423a.png" alt="Logo of Sir Ardbot" width="350"></p>
 
 # Sir Ardbot
 Sir Ardbot is a node.js-based, web-crawling Discord bot for new products notifications.
