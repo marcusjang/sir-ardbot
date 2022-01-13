@@ -7,13 +7,11 @@
 class Site {
 	constructor(domain, data) {
 		this.domain = domain;
-		this.meta = {
-			name: data.name,
-			country: data.category,
-			currency: data.currency,
-			euroSeparator: data.euroSeparator || false,
-			vatRate: data.vatRate || 1
-		}
+		this.meta.name = data.name;
+		this.meta.category = data.category;
+		this.meta.currency = data.currency;
+		this.meta.euroSeparator = data.euroSeparator || false;
+		this.meta.vatRate = data.vatRate || 1;
 		this.limit = (data.limit === undefined) ? 25 : data.limit;
 		this.productsSelector = data.productsSelector;
 		this.parseProduct = data.parseProduct;

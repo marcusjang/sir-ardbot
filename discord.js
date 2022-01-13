@@ -55,14 +55,14 @@ module.exports = {
 			const site = require(`./sites/${file}`);
 
 			// just some stylistic choices
-			const country = site.meta.country.toUpperCase();
-			let category = guild.channels.cache.find(ch => ch.name == country);
-			if (!categories.has(country)) {
+			const category = site.meta.category.toUpperCase();
+			let category = guild.channels.cache.find(ch => ch.name == category);
+			if (!categories.has(category)) {
 				// create national categories if there is none
 				// category var is set to the new category
-				debug(`${country} does not exist yet, creating...`);
-				category = await guild.channels.create(country, { type: 'GUILD_CATEGORY' });
-				debug(`${country} successfully created`);
+				debug(`${category} does not exist yet, creating...`);
+				category = await guild.channels.create(category, { type: 'GUILD_CATEGORY' });
+				debug(`${category} successfully created`);
 			}
 
 			// better channel name sanitisation
