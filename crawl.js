@@ -59,7 +59,7 @@ module.exports = (browser, domain) => {
 							}
 						});
 						
-						return page.goto(site.url, { waitUntil: [ 'load', 'domcontentloaded' ] })
+						return page.goto(site.url, { waitUntil: [ 'load' ] })
 							.catch(err => errorHandler(err, domain))
 							.then(() => {
 								return site.getPuppet(page)
