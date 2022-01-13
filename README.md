@@ -30,16 +30,19 @@ cd sir-ardbot
 npm install
 node index.js
 
-    sir-ardbot:main Sir Ardbot is ready on Discord! Initialising...
+    sir-ardbot:main Sir Ardbot is ready! Initialising...
 ```
 By default, the bot will crawl `about:blank` on [puppeteer](https://github.com/puppeteer/puppeteer/) then spit out some randomly generated results onto the console.
 
-Read further up on `.env` configurations and site modules below to build up Sir Ardbot to become a proper crawler bot!
+Read further up on [`.env` configurations](#env-configurations) and [site modules](#site-modules) below to build up Sir Ardbot to become a proper crawler bot!
 
 
 ## `.env` configurations
 ```.env
 # ./.env
+
+# Crawler
+CRAWLER_INTERVAL=90
 
 # Discord
 DISCORD_TOKEN=your_discord_token_goes_here
@@ -62,6 +65,10 @@ DRYRUN=false
 ```
 Environments variable are mostly optional just to run the bot, but for the full operation at least Discord configurations are required.
 
+#### Crawler configurations
+ * `CRAWLER_INTERVAL` (in seconds)  
+   Sets the overall crawling interval in seconds. Defaults to 90s
+
 #### Discord configurations
 If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit out the results onto the console.
  * `DISCORD_TOKEN`  
@@ -82,7 +89,7 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    
 #### Puppeteer configurations
  * `PUPPETEER_TIMEOUT` (in miliseconds) 
-   Sets Puppeteer timeout duration, defaults to 10000ms
+   Sets Puppeteer timeout duration. Defaults to 10,000ms
    
  * `PUPPETEER_PATH` 
    Sets Puppeteer excutable path for Chromium in case you want to specify a separate Chromium installation (i.e. on Raspberry Pis, etc.)
@@ -97,6 +104,44 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
  * `DRYRUN` = `true|false`  
    If set to `true`, Sir Ardbot will skip broadcasting **but** will be recording to the local db. Overrides `DEV` flag.  
    (Useful for catching up local db without broadcasting)
+
+
+## Site modules
+Sir Ardbot uses **site modules** which is defined by `./classes/site.js`. An example and also further description can be read in `./sites/_example.js`. 
+
+```js
+/*
+	./sites/_example.js
+*/
+const Site = require('../classes/site.js');
+
+module.exports = new Site('an.excellent.example', {
+	name: 'An Excellent Site',
+	category: 'An Excellent Category',
+	currency: 'EUR',
+	euroSeparator: false,
+	vatRate: 1.0,
+	limit: 25,
+	url: 'about:blank',
+	cookies: 'anExcellentCookie=anExcellentValue;'
+	hidden: false,
+	productsSelector: 'html > *',
+	parseProduct: prod => {
+		const product = {};
+
+		if (prod.tagName == 'head') return false;
+
+		product.name = prod.tagName;
+		product.price = Math.floor(Math.random() * 100) - 0.02;
+		product.abv = 40 + Math.floor(Math.random() * 200)/10;
+		product.size = 700;
+		product.url = 'https://an.excellent.example/an-excellent-product';
+		product.img = 'https://an.excellent.example/an-excellent-product/an-excellent-image.png';
+
+		return product;
+	}
+});
+```
 
 ----
 
