@@ -98,8 +98,8 @@ module.exports = () => {
 
 										return knex.insert(entries).onConflict('url').ignore().into('products')
 											.then(() => {
-												debug(`${domain}: Successfully inserted ${entries.length} entries into the DB`);
-												debug(`${domain}: Returning to Discord interface with new products...`);
+												debug(`${entries.site}: Successfully inserted ${entries.length} entries into the DB`);
+												debug(`${entries.site}: Returning to Discord interface with new products...`);
 												return products;
 											})
 									} else {
