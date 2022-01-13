@@ -3,8 +3,11 @@
 		this is where the fun really is
 */
 
-const debug = require('debug')('sir-ardbot:main');
+const debugModule = require('debug');
+const debug = debugModule('sir-ardbot:main');
       debug.log = console.info.bind(console);
+const error = debugModule('sir-ardbot:main-error');
+      error.log = console.error.bind(console);
 const path = require('path');
 const fs = require('fs/promises');
 const puppeteer = require('puppeteer');
@@ -12,6 +15,7 @@ const puppeteer = require('puppeteer');
 const crawl = require('./crawl.js');
 const discord = require('./discord.js');
 const database = require('./database.js');
+const knex = database.knex;
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -78,10 +82,35 @@ module.exports = () => {
 
 						queue.array = channelArray.map(channelObj => {
 							const { site, channel } = channelObj;
-							return () => crawl(browser, site).then(products => {
-								if (!products) return false;
-								return discord.sendProducts(channel, products);
-							});
+							return () => crawl(browser, site)
+								.then(products => {
+									if (!products) return Promise.reject(null);
+
+									if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
+										// store new products on the database (for some time at least)
+										// needs to be expunged routinely
+										const entries = products.map(product => {
+											return {
+												site: product.site,
+												url: product.url
+											}
+										});
+
+										return knex.insert(entries).onConflict('url').ignore().into('products')
+											.then(() => {
+												debug(`${domain}: Successfully inserted ${entries.length} entries into the DB`);
+												debug(`${domain}: Returning to Discord interface with new products...`);
+												return products;
+											})
+									} else {
+												debug(`${domain}: Returning to Discord interface without inserting...`);
+												return products;
+									}
+								})
+								.then(products => discord.sendProducts(channel, products))
+								.catch(err => {
+									if (err !== null) error(err);
+								});
 						});
 						queue.arrayCopy = queue.array.map(el => el); // just to copy the array
 						work();

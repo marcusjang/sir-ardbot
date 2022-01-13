@@ -96,27 +96,8 @@ module.exports = (browser, domain) => {
 					debug(`${domain}: No new product has been found`);
 					return null;
 				} else {
-					// store new products on the database (for some time at least)
-					// needs to be expunged routinely
-					const entries = products.map(product => {
-						return {
-							site: product.site,
-							url: product.url
-						}
-					});
-
-					if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
-						debug(`${domain}: ${entries.length} new products has been found, inserting...`);
-						return knex.insert(entries).onConflict('url').ignore().into('products')
-							.then(() => {
-								debug(`${domain}: Successfully inserted ${entries.length} entries into the DB`);
-								debug(`${domain}: Returning to Discord interface with new products...`);
-								return products;
-							})
-					} else {
-						debug(`${domain}: Returning to Discord interface without inserting...`);
-						return products;
-					}
+					debug(`${domain}: Returning to the job queue with new products...`);
+					return products;
 				}
 			});
 	} catch(err) {
