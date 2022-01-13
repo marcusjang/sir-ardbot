@@ -10,7 +10,7 @@ class Site {
 		this.meta = {};
 		this.meta.name = data.name;
 		this.meta.category = data.category;
-		this.meta.currency = data.currency;
+		this.meta.currency = data.currency || '';
 		this.meta.euroSeparator = data.euroSeparator || false;
 		this.meta.vatRate = data.vatRate || 1;
 		this.limit = (data.limit === undefined) ? 25 : data.limit;

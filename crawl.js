@@ -88,11 +88,13 @@ module.exports = (browser, domain) => {
 
 				if (currency.enabled) {
 					products.forEach(prod => {
-						prod.priceUSD = Math.round(
+						if (rates[prod.currency]) {
+							prod.priceUSD = Math.round(
 								prod.price *
 								rates[prod.currency].rate /
 								rates.USD.rate * 100
 							) / 100;
+						}
 					});
 				}
 
