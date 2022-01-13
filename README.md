@@ -123,13 +123,11 @@ module.exports = new Site('an.excellent.example', {
 	vatRate: 1.0,
 	limit: 25,
 	url: 'about:blank',
-	cookies: 'anExcellentCookie=anExcellentValue;'
+	cookies: 'anExcellentCookie=anExcellentValue;',
 	hidden: false,
 	productsSelector: 'html > *',
 	parseProduct: prod => {
 		const product = {};
-
-		if (prod.tagName == 'head') return false;
 
 		product.name = prod.tagName;
 		product.price = Math.floor(Math.random() * 100) - 0.02;
@@ -137,6 +135,8 @@ module.exports = new Site('an.excellent.example', {
 		product.size = 700;
 		product.url = 'https://an.excellent.example/an-excellent-product';
 		product.img = 'https://an.excellent.example/an-excellent-product/an-excellent-image.png';
+		
+		if (product.abv < 46) return false;
 
 		return product;
 	}
