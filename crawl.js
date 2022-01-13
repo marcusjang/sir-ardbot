@@ -11,6 +11,19 @@ const error = debugModule('sir-ardbot:crawler-error');
 const { knex } = require('./database.js');
 const getRates = require('./currency.js');
 
+const errorHandler = (err, domain) => {
+	if (err.name == 'TimeoutError') {
+		error(`${domain}: We somehow timed out?! Maybe it's nothing...`);
+	} else if (err.code != 'SQLITE_CONSTRAINT') {
+		error(`${domain}: I'm sure it's nothing, but there was an (allowed) database conflic:`);
+		error(err.message);
+	} else {
+		error(`${domain}: We had some uncertain error- to be specific:`);
+		error(err.message);
+	}
+	return false;
+};
+
 module.exports = (browser, domain) => {
 	try {
 		const site = require(`./sites/${domain}.js`);
@@ -47,27 +60,20 @@ module.exports = (browser, domain) => {
 						});
 						
 						return page.goto(site.url, { waitUntil: 'networkidle2' })
-							.catch(err => {
-								if (err.name == 'TimeoutError') {
-									error(`${domain}: We somehow timed out?!`);
-								} else {
-									error(err.message);
-								}
-							})
+							.catch(errorHandler)
 							.then(() => {
 								return site.getPuppet(page)
 									.then(results => {
 										debug(`${domain}: Successfully crawled ${results.length} products`);
 										return results.reverse();
 									})
-									.catch(err => error(err.message))
+									.catch(errorHandler)
 									.finally(() => {
 										debug(`${domain}: Closing page...`);
 										return page.close();
 									});
 								});
-					})
-					,
+					}),
 				knex.where('site', domain).select('url').from('products'),
 				getRates()
 			])
@@ -114,10 +120,6 @@ module.exports = (browser, domain) => {
 				}
 			});
 	} catch(err) {
-		// actively ignore conflict messages
-		if (err.code != 'SQLITE_CONSTRAINT') {
-			error(`${domain}: Failed with the following:`);
-			console.error(err);
-		}
+		errorHandler(err);
 	}
 }
