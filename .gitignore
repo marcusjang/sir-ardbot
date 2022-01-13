@@ -5,6 +5,7 @@ node_modules
 data.db
 
 sites/*
+!sites/_example.js
 
 commands/*
 !commands/_example.js
