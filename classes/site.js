@@ -46,7 +46,7 @@ class Site {
 				if (product.abv) product.abv = this.parseABV(product.abv);
 				if (product.url.match(/^\/[^\/]/)) product.url = this.absUrl(product.url);
 				if (product.img && product.img.match(/^\/[^\/]/)) product.img = this.absUrl(product.img);
-				if (product.img && product.img.match(/^\/\/cdn/)) product.img = 'https' + product.img;
+				if (product.img && product.img.match(/^\/\/cdn/)) product.img = 'https:' + product.img;
 				return { ...this.newProduct, ...product };
 			})
 			.filter(product => product.url && (!product.size || product.size > 100));
