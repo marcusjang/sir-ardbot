@@ -4,12 +4,14 @@
 		mostly used for its static fns? wtf
 */
 
+const acorn = require('acorn');
+
 class Site {
 	constructor(domain, data) {
 		this.domain = domain;
 		this.meta = {};
-		this.meta.name = data.name;
-		this.meta.category = data.category;
+		this.meta.name = data.name || domain;
+		this.meta.category = data.category || 'Uncategorized';
 		this.meta.currency = data.currency || '';
 		this.meta.euroSeparator = data.euroSeparator || false;
 		this.meta.vatRate = data.vatRate || 1;
@@ -31,10 +33,13 @@ class Site {
 	}
 
 	get parseProductFn() {
-		return this.parseProduct.toString()
-			.replace(/^[^\{]+\{(.+)\}$/s, '$1')
-			.replace(/\t/g, '')
-			.trim();
+		const parsed = acorn.parse(this.parseProduct, { ecmaVersion: 2020 });
+		const expression = parsed.body[0].expression;
+		const params = expression.params.map(param => param.name).slice(0, 2);
+		if (params.length == 1) params.push('index');
+		const fn = this.parseProduct.toString().slice(expression.body.start, expression.body.end);
+
+		return { params: params, fn: fn };
 	}
 
 	mapProducts(products) {
@@ -62,9 +67,9 @@ class Site {
 
 	getPuppet(page) {
 		return page.waitForSelector(this.productsSelector).then(() => {
-			return page.$$eval(this.productsSelector, (products, parseProduct) => {
-				return products.map(prod => new Function('prod', parseProduct)(prod));
-			}, this.parseProductFn)
+			return page.$$eval(this.productsSelector, (products, params, parseProduct) => {
+				return products.map(prod => new Function(params[0], params[1], parseProduct)(prod));
+			}, this.parseProductFn.params, this.parseProductFn.fn)
 				.then(products => this.mapProducts(products));
 		});
 	}
