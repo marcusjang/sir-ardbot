@@ -99,6 +99,7 @@ class Site {
 	//   returns: number | null
 	static parseSize(sizeString) {
 		if (!sizeString) return null;
+		if (typeof sizeString === 'number') return sizeString;
 
 		const sizeChunks = sizeString.trim().match(/^([\d\.\,]+)\s?(\w+)$/);
 		if (!sizeChunks) return null;
@@ -118,6 +119,7 @@ class Site {
 	// Returns null when given null
 	//   returns: number | null
 	static parseABV(abvString) {
+		if (typeof abvString === 'number') return abvString;
 		return (!abvString) ? null : abvString.replace(',', '.').replace(/[^\d\.]/g, '') * 1;
 	}
 
@@ -126,6 +128,8 @@ class Site {
 	// Can take additional arguments to calculate excl. VAT value
 	//   returns: number
 	static parsePrice(priceString, euroSeparator = false, vatRate = 1) {
+		if (typeof priceString === 'number') return priceString;
+		
 		const separator = (euroSeparator) ? '.' : ',';
 		const decimal = (euroSeparator) ? ',' : '.';
 

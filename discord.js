@@ -9,10 +9,21 @@ const path = require('path');
 const fs = require('fs/promises');
 const { Client, Intents } = require('discord.js');
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
-const token = process.env.DISCORD_TOKEN
+const realClient = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const token = process.env.DISCORD_TOKEN;
 const guildID = process.env.DISCORD_GUILD_ID;
 const roleIDs = (process.env.DISCORD_ROLE_ID || '').split(',');
+const enabled = !((!token || typeof token !== 'string') || process.env.DISCORD_DISABLED === 'true');
+
+let fauxClient = null;
+if (!enabled) {
+	const EventEmitter = require('events');
+	fauxClient = new EventEmitter();
+	fauxClient.login = () => setInterval(() => fauxClient.emit('ready'), 500);
+	fauxClient.destroy = () => null;
+}
+
+const client = (enabled) ? realClient : fauxClient;
 
 // Here we handle commands
 client.on('interactionCreate', async interaction => {
@@ -34,6 +45,7 @@ client.on('interactionCreate', async interaction => {
 
 
 module.exports = {
+	enabled: enabled,
 	client: client,
 	login: () => client.login(token),
 	initChannels: async (files) => {
@@ -169,7 +181,7 @@ module.exports = {
 		});
 
 		return Promise.all(embedsArray.map(embeds => {
-			if (!(process.env.DEV === 'true')) {
+			if (!(process.env.DEV === 'true') && enabled) {
 				return channel.send({ embeds: embeds });
 			} else {
 				return embeds.forEach(embed => console.log(embed.title, embed.timestamp, embed.url));

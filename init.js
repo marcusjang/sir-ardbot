@@ -59,7 +59,7 @@ const work = () => {
 const client = discord.client;
 
 module.exports = () => {
-	debug(`Sir Ardbot is ready on Discord! Initialising...`);
+	debug(`Sir Ardbot is ready! Initialising...`);
 
 	// dynamically reads commands
 	client.commands = new Map();
@@ -82,7 +82,16 @@ module.exports = () => {
 				return fs.readdir(path.join(__dirname, './sites/'))
 					// filtering happens here for filenames starting with '-' or not ending with .js
 					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-					.then(files => discord.initChannels(files))
+					.then(files => {
+						if (files.length > 0) {
+							return discord.initChannels(files);
+						} else {
+							return [{
+								site: '_example',
+								channel: null
+							}];
+						}
+					})
 					.then(channelArray => {
 						queue.unitDelay = Math.floor(interval / channelArray.length); // 60 seconds = 1 minute
 						debug(`unit delay is ${queue.unitDelay}ms per site`);
@@ -93,7 +102,7 @@ module.exports = () => {
 								.then(products => {
 									if (!products) return Promise.reject(null);
 
-									if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
+									if (discord.enabled && ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true'))) {
 										// store new products on the database (for some time at least)
 										// needs to be expunged routinely
 										const entries = products.map(product => {
@@ -105,12 +114,12 @@ module.exports = () => {
 
 										return knex.insert(entries).onConflict('url').ignore().into('products')
 											.then(() => {
-												debug(`${entries.site}: Successfully inserted ${entries.length} entries into the DB`);
-												debug(`${entries.site}: Returning to Discord interface with new products...`);
+												debug(`${site}: Successfully inserted ${entries.length} entries into the DB`);
+												debug(`${site}: Returning to Discord interface with new products...`);
 												return products;
 											})
 									} else {
-												debug(`${domain}: Returning to Discord interface without inserting...`);
+												debug(`${site}: Returning to Discord interface without inserting...`);
 												return products;
 									}
 								})

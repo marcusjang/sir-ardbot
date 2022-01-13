@@ -12,6 +12,8 @@ const debug = require('debug')('sir-ardbot:index');
 
 const discord = require('./discord.js');
 
+const token = process.env.DISCORD_TOKEN;
+
 // everything starts when the Discord client is ready
 discord.login();
 discord.client.once('ready', require('./init.js'));

@@ -13,7 +13,7 @@ const parser = new XMLParser();
 const { knex } = require('./database.js');
 
 const token = process.env.UNIPASS_TOKEN;
-const enabled = !(!token || (process.env.UNIPASS_DISABLE === 'true'));
+const enabled = !(!token || (process.env.UNIPASS_DISABLED === 'true'));
 
 const addDays = (date, days) => new Date(date.valueOf() + ((new Date().getTimezoneOffset() + days*24*60)*60*1000));
 const toDate = string => new Date(string.toString().replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
