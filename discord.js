@@ -55,26 +55,26 @@ module.exports = {
 			const site = require(`./sites/${file}`);
 
 			// just some stylistic choices
-			const category = site.meta.category.toUpperCase();
-			let category = guild.channels.cache.find(ch => ch.name == category);
-			if (!categories.has(category)) {
+			const categoryName = site.meta.category.toUpperCase();
+			let category = guild.channels.cache.find(ch => ch.name == categoryName);
+			if (!categories.has(categoryName)) {
 				// create national categories if there is none
 				// category var is set to the new category
-				debug(`${category} does not exist yet, creating...`);
-				category = await guild.channels.create(category, { type: 'GUILD_CATEGORY' });
-				debug(`${category} successfully created`);
+				debug(`${categoryName} does not exist yet, creating...`);
+				category = await guild.channels.create(categoryName, { type: 'GUILD_CATEGORY' });
+				debug(`${categoryName} successfully created`);
 			}
 
 			// better channel name sanitisation
-			const siteName =
+			const channelName =
 				site.meta.name
 					.toLowerCase()				// first to lowercase (stylistic choices)
 					.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
 					.replace(/\s/g, '-')		// then replace space into dash
 					.replace(/-+/g, '-');		// then remove duplicate dashes
 
-			let channel = guild.channels.cache.find(ch => ch.name == siteName);
-			if (!channels.has(siteName)) {
+			let channel = guild.channels.cache.find(ch => ch.name == channelName);
+			if (!channels.has(channelName)) {
 				// set barebone permissions
 				const permissions = [
 					{
@@ -106,14 +106,14 @@ module.exports = {
 				
 				// create channels if there is none
 				// channel var is set to the new channel
-				debug(`${siteName} channel does not exist yet, creating...`);
-				channel = await guild.channels.create(siteName, {
+				debug(`${channelName} channel does not exist yet, creating...`);
+				channel = await guild.channels.create(channelName, {
 					type: 'GUILD_TEXT',
 					parent: category.id,
 					topic: site.meta.url,
 					permissionOverwrites: permissions
 				});
-				debug(`${siteName} successfully created`);
+				debug(`${channelName} successfully created`);
 			}
 
 			// store them to array so we can locally use them
