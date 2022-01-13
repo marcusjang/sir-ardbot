@@ -60,14 +60,14 @@ module.exports = (browser, domain) => {
 						});
 						
 						return page.goto(site.url, { waitUntil: 'networkidle2' })
-							.catch(errorHandler)
+							.catch(err => errorHandler(err, domain))
 							.then(() => {
 								return site.getPuppet(page)
 									.then(results => {
 										debug(`${domain}: Successfully crawled ${results.length} products`);
 										return results.reverse();
 									})
-									.catch(errorHandler)
+									.catch(err => errorHandler(err, domain))
 									.finally(() => {
 										debug(`${domain}: Closing page...`);
 										return page.close();
@@ -120,6 +120,6 @@ module.exports = (browser, domain) => {
 				}
 			});
 	} catch(err) {
-		errorHandler(err);
+		errorHandler(err, 'database');
 	}
 }
