@@ -7,6 +7,7 @@
 class Site {
 	constructor(domain, data) {
 		this.domain = domain;
+		this.meta = {};
 		this.meta.name = data.name;
 		this.meta.category = data.category;
 		this.meta.currency = data.currency;
