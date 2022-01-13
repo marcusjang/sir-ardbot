@@ -10,6 +10,9 @@ const fs = require('fs/promises');
 const { Client, Intents } = require('discord.js');
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const token = process.env.DISCORD_TOKEN
+const guildID = process.env.DISCORD_GUILD_ID;
+const roleIDs = (process.env.DISCORD_ROLE_ID || '').split(',');
 
 // Here we handle commands
 client.on('interactionCreate', async interaction => {
@@ -32,11 +35,10 @@ client.on('interactionCreate', async interaction => {
 
 module.exports = {
 	client: client,
-	login: token => client.login(token),
+	login: () => client.login(token),
 	initChannels: async (files) => {
 		// guild is stored in the .env 
-		const guild = client.guilds.cache.get(process.env.GUILD_ID);
-		const roleIDs = (process.env.ROLE_ID || '').split(',');
+		const guild = client.guilds.cache.get(guildID);
 
 		const channelArray = [];
 

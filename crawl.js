@@ -9,7 +9,9 @@ const debug = debugModule('sir-ardbot:crawler-info');
 const error = debugModule('sir-ardbot:crawler-error');
       error.log = console.error.bind(console);
 const { knex } = require('./database.js');
-const getRates = require('./currency.js');
+const currency = require('./currency.js');
+
+const timeout = +process.env.PUPPETEER_TIMEOUT || 10000;
 
 const errorHandler = (err, domain) => {
 	if (err.name == 'TimeoutError') {
@@ -33,7 +35,7 @@ module.exports = (browser, domain) => {
 				browser.newPage()
 					.then(page => {
 							return Promise.all([
-								page.setDefaultTimeout(+process.env.PUPPETEER_TIMEOUT),
+								page.setDefaultTimeout(timeout),
 								page.setRequestInterception(true),
 								(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
 							]).then(() => page);
@@ -75,7 +77,7 @@ module.exports = (browser, domain) => {
 								});
 					}),
 				knex.where('site', domain).select('url').from('products'),
-				getRates()
+				currency.getRates()
 			])
 			.then(parcel => {
 				const [ results, record, rates ] = parcel;
@@ -84,13 +86,15 @@ module.exports = (browser, domain) => {
 				const set = new Set(record.map(el => el.url));
 				const products = results.filter(prod => !set.has(prod.url));
 
-				products.forEach(prod => {
-					prod.priceUSD = Math.round(
-							prod.price *
-							rates[prod.currency].rate /
-							rates.USD.rate * 100
-						) / 100;
-				});
+				if (currency.enabled) {
+					products.forEach(prod => {
+						prod.priceUSD = Math.round(
+								prod.price *
+								rates[prod.currency].rate /
+								rates.USD.rate * 100
+							) / 100;
+					});
+				}
 
 				if (!products || products.length == 0) {
 					debug(`${domain}: No new product has been found`);

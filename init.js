@@ -28,7 +28,14 @@ const queue = {
 					// used to not clog up the http req, will be overwritten depending on the job size
 }
 
-const period = 90 * 1000; // theorically each site should be crawled every 90 seconds
+const interval = (process.env.CRAWLER_INTERVAL || 90) * 1000; // theorically each site should be crawled every 90 seconds
+const puppeteerOptions = { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] };
+const puppeteerPath = process.env.PUPPETEER_PATH || false;
+
+if (puppeteerPath && puppeteerPath !== '') {
+	puppeteerOptions.product = 'chrome';
+	puppeteerOptions.executablePath = puppeteerPath;
+}
 
 const work = () => {
 	if (queue.working) return false;
@@ -67,7 +74,7 @@ module.exports = () => {
 		})
 		.then(() => Promise.all([
 				database.init(), // initialise the database
-				puppeteer.launch({ args: [ '--no-sandbox', '--disable-setuid-sandbox' ] })
+				puppeteer.launch(puppeteerOptions)
 			]).then(init => {
 				const browser = init[1];
 				// see through ./sites/* and get files
@@ -77,7 +84,7 @@ module.exports = () => {
 					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 					.then(files => discord.initChannels(files))
 					.then(channelArray => {
-						queue.unitDelay = Math.floor(period / channelArray.length); // 60 seconds = 1 minute
+						queue.unitDelay = Math.floor(interval / channelArray.length); // 60 seconds = 1 minute
 						debug(`unit delay is ${queue.unitDelay}ms per site`);
 
 						queue.array = channelArray.map(channelObj => {
