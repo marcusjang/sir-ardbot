@@ -1,14 +1,16 @@
-node_modules
+# .gitignore
 
+# obvious ones for nodejs projects
+node_modules
 .env
 
+# sqlite3 database
 data.db
 
+# sites and commands modules are handled by separate submodules
 sites/*
-!sites/_example.js
-
 commands/*
-!commands/_example.js
 
-# this file is only used for developmental purposes
-crawlman.js
+# but we'll allow examples to get through
+!sites/_example.js
+!commands/_example.js
