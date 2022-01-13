@@ -4,6 +4,7 @@
 */
 
 const debug = require('debug')('sir-ardbot:discord');
+      debug.log = console.info.bind(console);
 const path = require('path');
 const fs = require('fs/promises');
 const { Client, Intents } = require('discord.js');

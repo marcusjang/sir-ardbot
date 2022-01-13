@@ -8,6 +8,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const debug = require('debug')('sir-ardbot:index');
+      debug.log = console.info.bind(console);
 
 const discord = require('./discord.js');
 

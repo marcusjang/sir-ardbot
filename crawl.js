@@ -3,7 +3,11 @@
 		this is where the crawling happens under my skin
 */
 
-const debug = require('debug')('sir-ardbot:crawler');
+const debugModule = require('debug');
+const debug = debugModule('sir-ardbot:crawler-info');
+      debug.log = console.info.bind(console);
+const error = debugModule('sir-ardbot:crawler-error');
+      error.log = console.error.bind(console);
 const { knex } = require('./database.js');
 const getRates = require('./currency.js');
 
@@ -45,9 +49,9 @@ module.exports = (browser, domain) => {
 						return page.goto(site.url, { waitUntil: 'networkidle2' })
 							.catch(err => {
 								if (err.name == 'TimeoutError') {
-									debug(`${domain}: We somehow timed out?!`);
+									error(`${domain}: We somehow timed out?!`);
 								} else {
-									console.error(err.message);
+									error(err.message);
 								}
 							})
 							.then(() => {
@@ -56,7 +60,7 @@ module.exports = (browser, domain) => {
 										debug(`${domain}: Successfully crawled ${results.length} products`);
 										return results.reverse();
 									})
-									.catch(err => console.error(err.message))
+									.catch(err => error(err.message))
 									.finally(() => {
 										debug(`${domain}: Closing page...`);
 										return page.close();
@@ -112,7 +116,7 @@ module.exports = (browser, domain) => {
 	} catch(err) {
 		// actively ignore conflict messages
 		if (err.code != 'SQLITE_CONSTRAINT') {
-			console.error(`${domain} Failed with the following:`);
+			error(`${domain}: Failed with the following:`);
 			console.error(err);
 		}
 	}

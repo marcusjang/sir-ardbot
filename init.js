@@ -4,6 +4,7 @@
 */
 
 const debug = require('debug')('sir-ardbot:main');
+      debug.log = console.info.bind(console);
 const path = require('path');
 const fs = require('fs/promises');
 const puppeteer = require('puppeteer');

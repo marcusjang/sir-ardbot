@@ -5,6 +5,7 @@
 */
 
 const debug = require('debug')('sir-ardbot:currency');
+      debug.log = console.info.bind(console);
 const fetch = require('node-fetch');
 const { XMLParser } = require('fast-xml-parser');
 const parser = new XMLParser();
