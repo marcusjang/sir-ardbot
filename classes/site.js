@@ -9,7 +9,7 @@ class Site {
 		this.domain = domain;
 		this.meta = {
 			name: data.name,
-			country: data.country,
+			country: data.category,
 			currency: data.currency,
 			euroSeparator: data.euroSeparator || false,
 			vatRate: data.vatRate || 1
