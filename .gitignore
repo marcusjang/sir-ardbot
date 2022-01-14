@@ -13,4 +13,5 @@ commands/*
 
 # but we'll allow examples to get through
 !sites/_example.js
+!sites/README.md
 !commands/_example.js
