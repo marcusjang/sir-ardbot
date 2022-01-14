@@ -1,5 +1,5 @@
-# Site modules
-As previously stated. Sir Ardbot uses **site modules** which is defined by [`classes/site.js`](classes/site.js). Below is an example and following explanations on what each parameters do so you can build your own site module.
+# Site Modules
+As previously stated, Sir Ardbot uses **site modules** which is defined by [`classes/site.js`](../classes/site.js). Below is an example and following explanations on what each parameters do so you can build your own site module.
 
 ## Example
 ```js
@@ -47,22 +47,22 @@ module.exports = new Site('an.excellent.example', {
 });
 ```
 
-## `Site` object
-### Properties and Methods
- * [`site.domain`](#site-domain)
- * [`site.meta`](#site-meta)
- * [`site.meta.name`](#site-meta-name)
- * [`site.meta.category`](#site-meta-category)
- * [`site.meta.currency`](#site-meta-currency)
- * [`site.meta.euroSeparator`](#site-meta-euroseparator)
- * [`site.limit`](#site-limit)
- * [`site.url`](#site-url)
- * [`site.cookies`](#site-cookies)
- * [`site.hidden`](#site-hidden)
- * [`site.productsSelector`](#site-productsselector)
- * [`site.parseProduct`](#site-parseproduct)
+## `Site` Object
+### Properties
+ * [`site.domain`](#sitedomain)
+ * [`site.meta`](#sitemeta)
+ * [`site.meta.name`](#sitemetaname)
+ * [`site.meta.category`](#sitemetacategory)
+ * [`site.meta.currency`](#sitemetacurrency)
+ * [`site.meta.euroSeparator`](#sitemetaeuroseparator)
+ * [`site.limit`](#sitelimit)
+ * [`site.url`](#siteurl)
+ * [`site.cookies`](#sitecookies)
+ * [`site.hidden`](#sitehidden)
+ * [`site.productsSelector`](#siteproductsselector)
+ * [`site.parseProduct`](#siteparseproduct)
 
-#### [`site.domain`](#properties-and-methods)
+#### [`site.domain`](#properties)
 ```js
 /*
  * 	site.domain
@@ -73,8 +73,8 @@ module.exports = new Site('an.excellent.example', {
  ```
 The first argument of `new Site()` is used as site.domain. It's used essentially as the identifier of the module.
 
-#### [`site.meta`](#properties-and-methods)
-#### [`site.meta.name`](#properties-and-methods)
+#### [`site.meta`](#properties)
+#### [`site.meta.name`](#properties)
 ```js
 /*
  * 	site.meta.name
@@ -85,7 +85,7 @@ The first argument of `new Site()` is used as site.domain. It's used essentially
  ```
 A sanitised version of this will be used as the name of the channel. The bot will create a new channel if no channel with the same name is found.
 
-#### [`site.meta.category`](#properties-and-methods)
+#### [`site.meta.category`](#properties)
 ```js
 /*
  * 	site.meta.category
@@ -96,7 +96,7 @@ A sanitised version of this will be used as the name of the channel. The bot wil
  ```
 This will be used as the name of the category. Same as above - new categires will be dynamically created.
 
-#### [`site.meta.currency`](#properties-and-methods)
+#### [`site.meta.currency`](#properties)
 ```js
 /*
  * 	site.meta.currency
@@ -108,7 +108,7 @@ This will be used as the name of the category. Same as above - new categires wil
 This is used for two cases - first, for human-readablility reasons, and second, to calculate currency conversion into USD.  
 Check Unipass OpenAPI docs for valid currensy acronyms.
 
-#### [`site.meta.euroSeparator`](#properties-and-methods)
+#### [`site.meta.euroSeparator`](#properties)
 ```js
 /*
  * 	site.meta.euroSeparator
@@ -119,7 +119,7 @@ Check Unipass OpenAPI docs for valid currensy acronyms.
  ```
 If set to true, on parsing the price of products the function will look for comma(,) as the decimal separator. If false, it will look for period(.) instead.
 
-#### [`site.limit`](#properties-and-methods)
+#### [`site.limit`](#properties)
 ```js
 /*
  * 	site.limit
@@ -130,18 +130,18 @@ If set to true, on parsing the price of products the function will look for comm
  ```
 Limits the number of crawled products to be returned.
 
-#### [`site.url`](#properties-and-methods)
+#### [`site.url`](#properties)
 ```js
 /*
  * 	site.url
  *	@required
  *	@type		string | function
  */
- 	url: 25,
+ 	url: 'about:blank',
  ```
 The URL of page to crawl from. Can be a function that takes a page argument and returns according url, but currently the page-specific or multi-page crawling is unimplemented.
 
-#### [`site.cookies`](#properties-and-methods)
+#### [`site.cookies`](#properties)
 ```js
 /*
  * 	site.cookies
@@ -152,18 +152,18 @@ The URL of page to crawl from. Can be a function that takes a page argument and 
  ```
 Cookies required for the given page in string form. If set, it will override Puppeteer's HTTP request header cookie.
 
-#### [`site.hidden`](#properties-and-methods)
+#### [`site.hidden`](#properties)
 ```js
 /*
  * 	site.hidden
  *	@default	false
  *	@type		boolean
  */
- 	hidden: 'anExcellentCookie=anExcellentValue;',
+ 	hidden: false,
  ```
 If set, the site's channel will be accessible only to those with roles set in `.env`.
 
-#### [`site.productsSelector`](#properties-and-methods)
+#### [`site.productsSelector`](#properties)
 ```js
 /*
  * 	site.productsSelector
@@ -174,7 +174,7 @@ If set, the site's channel will be accessible only to those with roles set in `.
  ```
 The selector of products in DOM. This value will be essentially passed to `document.querySelectorAll()` as its selector argument.
 
-#### [`site.parseProduct`](#properties-and-methods)
+#### [`site.parseProduct`](#properties)
 ```js
 /*
  * 	site.parseProduct
@@ -183,8 +183,29 @@ The selector of products in DOM. This value will be essentially passed to `docum
  */
  	parseProduct: prod => { ... }
  ```
-This function is parsed into string, passed onto Puppeteer, called onto `document.querySelectorAll(site.productsSelector).map(site.parseProduct)` for each products.
-Since this is essentially a `callbackFn` for [`Array.prototype.map()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map), the function can have up to three parameters - element, index, and array.
-thisArg is not supported as the function is run at Puppeteer scope.
-The function is expected to return either false (which will be filtered out further down the line), or for the most part, the product object.
-The function in `_example.js` is a simple, fun function that generates random, fictional products that I wrote as an example.
+This function is parsed into string, passed onto puppeteer, called onto `document.querySelectorAll(site.productsSelector).map(site.parseProduct)` for each products.
+
+Since this is essentially a `callbackFn` for [`Array.prototype.map()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map), the function can have up to three parameters - `element`, `index`, and `array`.
+`thisArg` is not supported as the function is run at puppeteer's browser scope. Also, as the function is passed to puppeteer in string form and then reassembled to be executed browser-scope, **no variables outside of the function can be called from inside the function scope.**
+
+`site.parseProduct` is expected to `return` either `false` (which will be filtered out further down the line), or for the most part, [`the product object`](#the-product-object).
+
+The function included in `_example.js` is a simple, fun function that generates random, fictional products that I wrote as an example.
+
+
+## The Product Object
+The product object is a simple Javascript object that contains essential informations about the product.
+```js
+        const product = {};
+
+        product.name = fullName;
+        product.price = 100 + Math.floor(Math.random() * 300) - 0.02;
+        product.abv = 40 + Math.floor(Math.random() * 200)/10;
+        product.size = 700;
+        product.url = `https://an.excellent.example/an-excellent-${fullNameSlug}`;
+        product.img = product.url + `/an-excellent-${fullNameSlug}-thumbnail.png`;
+
+```
+Each properties are *hopefully* self describing, and won't require further details.
+
+As seen in [`classes/site.js`](../classes/site.js), each property has some checks and trimming functionss in places. Some details like `product.abv` or `product.size` can also be omitted.

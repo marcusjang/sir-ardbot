@@ -4,7 +4,7 @@
 Sir Ardbot is a node.js-based, web-crawling Discord bot for new products notifications.
 
 
-## Block diagram
+## Block Diagram
 ```
 ┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐ 
 │   CHROMIUM   │  parsed page →  │              │                 │              │
@@ -24,7 +24,7 @@ Sir Ardbot is a node.js-based, web-crawling Discord bot for new products notific
 
 
 ## Installation & Usage
-```shell
+```sh-session
 git clone https://github.com/marcusjang/sir-ardbot.git
 cd sir-ardbot
 npm install
@@ -44,12 +44,12 @@ To properly set up Sir Ardbot for;
  * Fetching currency exchange data (used in calculating to local currencies), and
  * Discord bot integrations,
 
-read further up on [`.env` configurations](#env-configurations) and other module-specific documentations.
- * [Site modules](#site-modules)
- * [Command modules](#command-modules)
+read further up on [`.env` Configurations](#env-configurations) and other module-specific documentations.
+ * [Site Modules](#site-modules)
+ * [Command Modules](#command-modules)
 
 
-## `.env` configurations
+## `.env` Configurations
 ```.env
 # .env
 
@@ -60,6 +60,7 @@ CRAWLER_INTERVAL=90
 DISCORD_TOKEN=your_discord_token_goes_here
 DISCORD_GUILD_ID=923123456789012345
 DISCORD_ROLE_ID=923123456789012346,923123456789012347
+DISCORD_DISABLED=false
 
 # Unipass
 UNIPASS_TOKEN=your_unipass_api_token_goes_here
@@ -77,11 +78,11 @@ DRYRUN=false
 ```
 Environments variable are mostly optional just to run the bot, but for the full operation at least Discord configurations are required.
 
-#### Crawler configurations
+#### Crawler Configurations
  * `CRAWLER_INTERVAL` (in seconds)  
    Sets the overall crawling interval in seconds. Defaults to 90s
 
-#### Discord configurations
+#### Discord Configurations
 If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit out the results onto the console.
  * `DISCORD_TOKEN`  
    Used for manipulating Sir Ardbot on Discord. Read further on [Discord Developer Portal](https://discord.com/developers/applications)
@@ -95,21 +96,21 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
  * `DISCORD_DISABLE` = `true|false`  
    Overides and disables Discord functionality of the bot when set to true
     
-#### Unipass configurations
+#### Unipass Configurations
  * `UNIPASS_TOKEN`  
    Used for fetching currency exchange rate via Unipass OpenAPI (for calculating prices into USD). Will skip checking if left blank. Read further on [Unipass Portal](https://unipass.customs.go.kr/)
    
  * `UNIPASS_DISABLE` = `true|false`  
    Overides and disables currency-related parts of the bot altogether when set to true
    
-#### Puppeteer configurations
- * `PUPPETEER_TIMEOUT` (in miliseconds) 
+#### Puppeteer Configurations
+ * `PUPPETEER_TIMEOUT` (in miliseconds)  
    Sets Puppeteer timeout duration. Defaults to 10,000ms
    
- * `PUPPETEER_PATH` 
+ * `PUPPETEER_PATH`  
    Sets Puppeteer excutable path for Chromium in case you want to specify a separate Chromium installation (i.e. on Raspberry Pis, etc.)
    
-#### Debug configurations
+#### Debug Configurations
  * `DEBUG`  
    Configures which [**debug**](https://github.com/debug-js/debug) messages to be printed
    
@@ -121,11 +122,11 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    (Useful for catching up local db without broadcasting)
 
 
-## Site modules
+## Site Modules
 Sir Ardbot uses **site modules** which is defined by [`classes/site.js`](classes/site.js). You can read about an example in [`sites/_example.js`](sites/_example.js), and/or further documentation in [`sites/README.md`](sites/README.md). 
 
 
-## Command modules
+## Command Modules
 Sir Ardbot, by the power of [**discord.js**](https://github.com/discordjs/discord.js/), supports a rudimentary form of Discord command handling. Commands are stored in `commands` path with an included example ([`commands/_example.js`](commands/_example.js)) as well.
 
 Read further on discord.js guide page for [Command Handling](https://discordjs.guide/creating-your-bot/command-handling.html).
