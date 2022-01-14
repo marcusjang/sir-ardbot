@@ -23,23 +23,34 @@ Sir Ardbot is a node.js-based, web-crawling Discord bot for new products notific
 ```
 
 
-## Usage
-```
+## Installation & Usage
+```shell
 git clone https://github.com/marcusjang/sir-ardbot.git
 cd sir-ardbot
 npm install
 node index.js
-
-    sir-ardbot:main Sir Ardbot is ready! Initialising...
 ```
-By default, the bot will crawl `about:blank` on [puppeteer](https://github.com/puppeteer/puppeteer/) then spit out some randomly generated results onto the console.
 
-Read further up on [`.env` configurations](#env-configurations) and [site modules](#site-modules) below to build up Sir Ardbot to become a proper crawler bot!
+#### Example output (Demo mode)
+```
+  Kilmaor 2006/2016 10 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-kilmaor-2006-2016-10-years-old
+  Bennagar 2002/2015 13 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-bennagar-2002-2015-13-years-old
+    ...
+```
+By default, the bot will crawl `about:blank` on [**puppeteer**](https://github.com/puppeteer/puppeteer/) then spit out some *randomly generated products* onto the console.
+
+To properly set up Sir Ardbot for;
+ * Crawling (new) products from websites,
+ * Fetching currency exchange data (used in calculating to local currencies), and
+ * Discord bot integrations,
+read further up on [`.env` configurations](#env-configurations) and other module-specific documentations.
+ * [Site modules](#site-modules)
+ * [Command modules](#command-modules)
 
 
 ## `.env` configurations
 ```.env
-# ./.env
+# .env
 
 # Crawler
 CRAWLER_INTERVAL=90
@@ -79,6 +90,9 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    
  * `DISCORD_ROLE_ID`  
    If set, site output channels with hidden flags will be shown to people with one of these roles. Supports multiple roles separated by comma(,)
+
+ * `DISCORD_DISABLE` = `true|false`  
+   Overides and disables Discord functionality of the bot when set to true
     
 #### Unipass configurations
  * `UNIPASS_TOKEN`  
@@ -96,7 +110,7 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    
 #### Debug configurations
  * `DEBUG`  
-   Configures which [debug](https://github.com/debug-js/debug) messages to be printed
+   Configures which [**debug**](https://github.com/debug-js/debug) messages to be printed
    
  * `DEV` = `true|false`  
    If set to `true`, Sir Ardbot will skip both recording and broadcasting
@@ -107,54 +121,10 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
 
 
 ## Site modules
-Sir Ardbot uses **site modules** which is defined by `./classes/site.js`. An example and also further description can be read in `./sites/_example.js`. 
+Sir Ardbot uses **site modules** which is defined by `classes/site.js`. You can read about an example in [`sites/_example.js`](sites/_example.js), and/or further documentation in [`sites/README.md`](sites/README.md). 
 
-```js
-/*
-	./sites/_example.js
-*/
-const Site = require('../classes/site.js');
 
-module.exports = new Site('an.excellent.example', {
-	name: 'An Excellent Site',
-	category: 'An Excellent Category',
-	currency: 'EUR',
-	euroSeparator: false,
-	vatRate: 1.0,
-	limit: 25,
-	url: 'about:blank',
-	cookies: 'anExcellentCookie=anExcellentValue;',
-	hidden: false,
-	productsSelector: 'html > *',
-	parseProduct: prod => {
-		const product = {};
+## Command modules
+Sir Ardbot, by the power of [**discord.js**](https://github.com/discordjs/discord.js/), supports a rudimentary form of Discord command handling. Commands are stored in `commands` path with an example ([`commands/_example.js`](commands/_example.js)) as well.
 
-		const namePrefix = ['Glen', 'Ben', 'Ard', 'Strath', 'Auch', 'Brachen', 'Kil'];
-		const nameSuffix = ['nagar', 'lochy', 'livet', 'moray', 'maor'];
-  
-		const distillery = namePrefix[namePrefix.length * Math.random() | 0]
-				 + nameSuffix[nameSuffix.length * Math.random() | 0];
-
-		const vintage = 1980 + Math.floor(Math.random() * 30);
-		const bottled = 2015 + Math.floor(Math.random() * 5);
-		const age = bottled - vintage - Math.floor(Math.random() * 2);
-		const fullName = `${distillery} ${vintage}/${bottled} ${age} years old`;
-		const fullNameSlug = fullName.toLowerCase().replace(/\W/g, '-');
-  
-		product.name = fullName;
-		product.price = 100 + Math.floor(Math.random() * 300) - 0.02;
-		product.abv = 40 + Math.floor(Math.random() * 200)/10;
-		product.size = 700;
-		product.url = `https://an.excellent.example/an-excellent-${fullNameSlug}`;
-		product.img = `https://an.excellent.example/an-excellent-${fullNameSlug}/an-excellent-${fullNameSlug}-thumbnail.png`;
-
-		return product;
-	}
-});
-```
-
-----
-
-```
-More informations to come soon!
-```
+Read further on discord.js guide page for [Command Handling](https://discordjs.guide/creating-your-bot/command-handling.html).
