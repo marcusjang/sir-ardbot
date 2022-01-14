@@ -31,7 +31,7 @@ npm install
 node index.js
 ```
 
-#### Example output (Demo mode)
+#### Example output in Demo mode, every 90 seconds...
 ```
   Kilmaor 2006/2016 10 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-kilmaor-2006-2016-10-years-old
   Bennagar 2002/2015 13 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-bennagar-2002-2015-13-years-old
@@ -43,6 +43,7 @@ To properly set up Sir Ardbot for;
  * Crawling (new) products from websites,
  * Fetching currency exchange data (used in calculating to local currencies), and
  * Discord bot integrations,
+
 read further up on [`.env` configurations](#env-configurations) and other module-specific documentations.
  * [Site modules](#site-modules)
  * [Command modules](#command-modules)
@@ -121,10 +122,10 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
 
 
 ## Site modules
-Sir Ardbot uses **site modules** which is defined by `classes/site.js`. You can read about an example in [`sites/_example.js`](sites/_example.js), and/or further documentation in [`sites/README.md`](sites/README.md). 
+Sir Ardbot uses **site modules** which is defined by [`classes/site.js`](classes/site.js). You can read about an example in [`sites/_example.js`](sites/_example.js), and/or further documentation in [`sites/README.md`](sites/README.md). 
 
 
 ## Command modules
-Sir Ardbot, by the power of [**discord.js**](https://github.com/discordjs/discord.js/), supports a rudimentary form of Discord command handling. Commands are stored in `commands` path with an example ([`commands/_example.js`](commands/_example.js)) as well.
+Sir Ardbot, by the power of [**discord.js**](https://github.com/discordjs/discord.js/), supports a rudimentary form of Discord command handling. Commands are stored in `commands` path with an included example ([`commands/_example.js`](commands/_example.js)) as well.
 
 Read further on discord.js guide page for [Command Handling](https://discordjs.guide/creating-your-bot/command-handling.html).
