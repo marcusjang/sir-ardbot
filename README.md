@@ -6,18 +6,18 @@ Sir Ardbot is a node.js-based, web-crawling Discord bot for new products notific
 
 ## Block diagram
 ```
-┌──────────────┐                 ┌──────────────┐                            ┌──────────────┐ 
-│   CHROMIUM   │  parsed page →  │              │                            │              │
-│  (Puppeteer) │  ← parsing fn   │              │                            │              │
-└──────────────┘                 │              │                            │              │
-┌──────────────┐                 │              │                            │              │
-│  UNIPASS API │   forex data →  │  SIR ARDBOT  │   broadcasting messages →  │  DISCORD.JS  │
-│ (node-fetch) │  ← http request │   (nodejs)   │  ← command interactions →  │   (Discord)  │
-└──────────────┘                 │              │                            │              │
-┌──────────────┐                 │              │                            │              │
-│   LOCAL DB   │  ←   data    →  │              │                            │              │
-│   (sqlite3)  │     caching     │              │                            │              │
-└──────────────┘                 └──────────────┘                            └──────────────┘
+┌──────────────┐                 ┌──────────────┐                 ┌──────────────┐ 
+│   CHROMIUM   │  parsed page →  │              │                 │              │
+│  (Puppeteer) │  ← parsing fn   │              │                 │              │
+└──────────────┘                 │              │   broadcasted   │              │
+┌──────────────┐                 │              │     messages →  │              │
+│  UNIPASS API │   forex data →  │  SIR ARDBOT  │                 │  DISCORD.JS  │
+│ (node-fetch) │  ← http request │   (nodejs)   │                 │   (Discord)  │
+└──────────────┘                 │              │  ←  command  →  │              │
+┌──────────────┐                 │              │   interactions  │              │
+│   LOCAL DB   │  ←   data    →  │              │                 │              │
+│   (sqlite3)  │     caching     │              │                 │              │
+└──────────────┘                 └──────────────┘                 └──────────────┘
 
   * Discord command registration API-related HTTP calls not shown
 ```
