@@ -183,7 +183,12 @@ The selector of products in DOM. This value will be essentially passed to `docum
  */
  	parseProduct: prod => { ... }
  ```
-This function is parsed into string, passed onto puppeteer, called onto `document.querySelectorAll(site.productsSelector).map(site.parseProduct)` for each products.
+This function is parsed into string, passed onto puppeteer, called onto for each products like below.
+```js
+// Not a real code -- just an approximation of what's happening under the hood
+Array.from(document.querySelectorAll(site.productsSelector))
+        .map(site.parseProduct)
+```
 
 Since this is essentially a `callbackFn` for [`Array.prototype.map()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map), the function can have up to three parameters - `element`, `index`, and `array`.
 `thisArg` is not supported as the function is run at puppeteer's browser scope. Also, as the function is passed to puppeteer in string form and then reassembled to be executed browser-scope, **no variables outside of the function can be called from inside the function scope.**
