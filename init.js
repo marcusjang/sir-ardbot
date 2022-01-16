@@ -1,7 +1,8 @@
 /*
-	init.js
-		this is where the fun really is
-*/
+ *  currency.js
+ *  	read module files and do stuff
+ *  
+ */
 
 const debugModule = require('debug');
 const debug = debugModule('sir-ardbot:main');
@@ -13,7 +14,6 @@ const fs = require('fs/promises');
 const puppeteer = require('puppeteer');
 
 const crawl = require('./crawl.js');
-const discord = require('./discord.js');
 const database = require('./database.js');
 const knex = database.knex;
 
@@ -56,24 +56,22 @@ const work = () => {
 	return true;
 };
 
-const client = discord.client;
-
-module.exports = () => {
+module.exports = discord => {
 	debug(`Sir Ardbot is ready! Initialising...`);
 
 	// dynamically reads commands
-	client.commands = new Map();
+	discord.client.commands = new Map();
 	fs.readdir(path.join(__dirname, './commands/'))
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 		.then(files => {
 			debug(`Found ${files.length} command(s), setting...`);
 			for (const file of files) {
 				const command = require(`./commands/${file}`);
-				client.commands.set(command.data.name, command);
+				discord.client.commands.set(command.data.name, command);
 			}
 		})
 		.then(() => Promise.all([
-				database.init(), // initialise the database
+				database.init(), // initialise the database, returns nothing useful
 				puppeteer.launch(puppeteerOptions)
 			]).then(init => {
 				const browser = init[1];
@@ -86,47 +84,43 @@ module.exports = () => {
 						if (files.length > 0) {
 							return discord.initChannels(files);
 						} else {
-							return [{
-								site: '_example',
-								channel: null
-							}];
+							return [ { site: '_example', channel: null } ];
 						}
 					})
 					.then(channelArray => {
-						queue.unitDelay = Math.floor(interval / channelArray.length); // 60 seconds = 1 minute
+						queue.unitDelay = Math.floor(interval / channelArray.length);
 						debug(`unit delay is ${queue.unitDelay}ms per site`);
 
 						queue.array = channelArray.map(channelObj => {
 							const { site, channel } = channelObj;
-							return () => crawl(browser, site)
-								.then(products => {
-									if (!products) return Promise.reject(null);
+							return () => crawl(browser, site).then(products => {
+								if (!products) return Promise.reject(null);
 
-									if (discord.enabled && ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true'))) {
-										// store new products on the database (for some time at least)
-										// needs to be expunged routinely
-										const entries = products.map(product => {
-											return {
-												site: product.site.domain,
-												url: product.url
-											}
-										});
+								if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
+									// store new products on the database (for some time at least)
+									// needs to be expunged routinely
+									const entries = products.map(product => {
+										return {
+											site: product.site.domain,
+											url: product.url
+										}
+									});
 
-										return knex.insert(entries).onConflict('url').ignore().into('products')
-											.then(() => {
-												debug(`${site}: Successfully inserted ${entries.length} entries into the DB`);
-												debug(`${site}: Returning to Discord interface with new products...`);
-												return products;
-											})
-									} else {
-												debug(`${site}: Returning to Discord interface without inserting...`);
-												return products;
-									}
-								})
-								.then(products => discord.sendProducts(channel, products))
-								.catch(err => {
-									if (err !== null) error(err);
-								});
+									return knex.insert(entries).onConflict('url').ignore().into('products')
+										.then(() => {
+											debug(`${site}: Successfully inserted ${entries.length} entries into the DB`);
+											debug(`${site}: Returning to Discord interface with new products...`);
+											return products;
+										})
+								} else {
+											debug(`${site}: Returning to Discord interface without inserting...`);
+											return products;
+								}
+							})
+							.then(products => discord.sendProducts(channel, products))
+							.catch(err => {
+								if (err !== null) error(err);
+							});
 						});
 						queue.arrayCopy = queue.array.map(el => el); // just to copy the array
 						work();

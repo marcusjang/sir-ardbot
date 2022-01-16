@@ -1,53 +1,52 @@
 /*
-	discord.js
-		this is where the discord things happen
-*/
+ *  discord.js
+ *  	just a bunch of discord related stuffs
+ *  
+ */
 
 const debug = require('debug')('sir-ardbot:discord');
       debug.log = console.info.bind(console);
 const path = require('path');
-const fs = require('fs/promises');
-const { Client, Intents } = require('discord.js');
 
-const realClient = new Client({ intents: [Intents.FLAGS.GUILDS] });
-const token = process.env.DISCORD_TOKEN;
+const discordToken = process.env.DISCORD_TOKEN;
 const guildID = process.env.DISCORD_GUILD_ID;
 const roleIDs = (process.env.DISCORD_ROLE_ID || '').split(',');
-const enabled = !((!token || typeof token !== 'string') || process.env.DISCORD_DISABLED === 'true');
+const enabled = !((!discordToken || typeof discordToken !== 'string') || process.env.DISCORD_DISABLED === 'true');
 
-let fauxClient = null;
-if (!enabled) {
+let client;
+
+if (enabled) {
+	const { Client, Intents } = require('discord.js');
+	client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+
+	// Here we handle commands
+	client.on('interactionCreate', async interaction => {
+		if (!interaction.isCommand()) return;
+
+		const command = client.commands.get(interaction.commandName);
+		if (!command) return;
+
+		try {
+			await command.execute(interaction);
+		} catch(e) {
+			console.error(e);
+			await interaction.reply({
+				content: 'Oh no, something has gone awry! I will make sure this incident will be reported.',
+				ephemeral: true
+			});
+		}
+	});
+} else {
 	const EventEmitter = require('events');
-	fauxClient = new EventEmitter();
-	fauxClient.login = () => setInterval(() => fauxClient.emit('ready'), 500);
-	fauxClient.destroy = () => null;
+	client = new EventEmitter();
+    client.login = () => setInterval(() => client.emit('ready'), 500);
+    client.destroy = () => null;
 }
-
-const client = (enabled) ? realClient : fauxClient;
-
-// Here we handle commands
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
-
-	const command = client.commands.get(interaction.commandName);
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	} catch(e) {
-		console.error(e);
-		await interaction.reply({
-			content: 'Oh no, something has gone awry! I will make sure this incident will be reported.',
-			ephemeral: true
-		});
-	}
-});
-
 
 module.exports = {
 	enabled: enabled,
 	client: client,
-	login: () => client.login(token),
+	login: (token = discordToken) => client.login(token),
 	initChannels: async (files) => {
 		// guild is stored in the .env 
 		const guild = client.guilds.cache.get(guildID);
@@ -153,11 +152,15 @@ module.exports = {
 				thumbnail: { url: product.img },
 				fields: [{
 					name: 'Price (excl. VAT)',
-					value: `${product.price} ${product.site.meta.currency} (≒ ${product.priceUSD} USD)`,
+					value: `${product.price} ${product.site.meta.currency}`,
 					inline: true
 				}],
 				timestamp: new Date()
 			};
+
+			if (product.priceUSD) {
+				embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD} USD)`;
+			}
 
 			if (product.size || product.abv) {
 				embed.fields.push({

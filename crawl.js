@@ -1,7 +1,8 @@
 /*
-	crawl.js
-		this is where the crawling happens in my skin
-*/
+ *  crawl.js
+ *  	stuffs to interface with puppeteer
+ *  
+ */
 
 const debugModule = require('debug');
 const debug = debugModule('sir-ardbot:crawler-info');
@@ -9,6 +10,7 @@ const debug = debugModule('sir-ardbot:crawler-info');
 const error = debugModule('sir-ardbot:crawler-error');
       error.log = console.error.bind(console);
 const { Buffer } = require('buffer');
+
 const { knex } = require('./database.js');
 const currency = require('./currency.js');
 
@@ -16,7 +18,29 @@ const timeout = +process.env.PUPPETEER_TIMEOUT || 10000;
 const pptrConsoleRelay = (process.env.PUPPETEER_CONSOLE === 'true');
 const dbCheck = (process.env.CRAWLER_DBCHECK !== 'false');
 
+// just a simple handler for (currently small) smorgasboard of errors
+const errorHandler = (err, domain) => {
+	if (err.name === 'TimeoutError') {
+		error(`${domain}: We somehow timed out?! Maybe it's nothing...`);
+	} else if (err.code === 'SQLITE_CONSTRAINT') {
+		error(`${domain}: I'm sure it's nothing, but there was an (allowed) database conflic:`);
+		console.error(err);
+	} else {
+		error(`${domain}: We had some uncertain error- to be specific:`);
+		console.error(err);
+	}
+	return false;
+};
+
+// used to relay puppeteer console to outside
+const relayConsole = messages => {
+	messages.args().forEach((message, index) => {
+		console.log(`${index} : ${message}`);
+	});
+};
+
 // 1x1 empty gif image in buffer form
+// this will be used in requestHandler() to gracefully block image requests
 const emptyImage = Buffer.from([
 	0x47,0x49,0x46,0x38,0x39,0x61,0x01,0x00,
 	0x01,0x00,0x91,0x00,0x00,0x00,0x00,0x00,
@@ -31,43 +55,22 @@ const emptyImage = Buffer.from([
 
 // request resource types to deny
 const denyTypes = [ 'media', 'stylesheet', 'font', 'other' ];
-
-const errorHandler = (err, domain) => {
-	if (err.name == 'TimeoutError') {
-		error(`${domain}: We somehow timed out?! Maybe it's nothing...`);
-	} else if (err.code != 'SQLITE_CONSTRAINT') {
-		error(`${domain}: I'm sure it's nothing, but there was an (allowed) database conflic:`);
-		console.error(err);
-	} else {
-		error(`${domain}: We had some uncertain error- to be specific:`);
-		console.error(err);
-	}
-	return false;
-};
-
-const relayConsole = messages => {
-	messages.args().forEach((message, index) => {
-		console.log(`${index} : ${message}`);
-	});
-};
-
 const requestHandler = req => {
 	req._interceptionHandled = false;
 	if (req.resourceType() === 'image') {
+		// images are handled separately to not trigger onError() 
 		req.respond({
 			status: 200,
-			headers: {
-				'Content-Length': emptyImage.length, 
-				'Content-Type': 'image/gif'
-			},
-			body: emptyImage
+			headers: { 'Content-Length': emptyImage.length,  'Content-Type': 'image/gif' },
+			body: emptyImage // see? how graceful
 		});
 	} else if (denyTypes.includes(req.resourceType())) {
+		// other types are simply denied
 		req.respond({ status: 200, body: '' });
 	} else {
 		req.continue();
 	}
-}
+};
 
 module.exports = (browser, domain) => {
 	try {
@@ -114,7 +117,7 @@ module.exports = (browser, domain) => {
 
 			if (currency.enabled) {
 				products.forEach(prod => {
-					if (rates[prod.currency]) {
+					if (prod.site.meta.currency !== 'USD' && rates[prod.site.meta.currency]) {
 						prod.priceUSD = Math.round(
 							prod.price *
 							rates[prod.site.meta.currency].rate /
