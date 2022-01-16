@@ -1,7 +1,7 @@
-const util = require('util');
+const { inspect } = require('util');
 
 module.exports = (message) => console.log(
-	util.inspect(message, {
+	inspect(message, {
 		showHidden: false,
 		depth: null,
 		colors: true
