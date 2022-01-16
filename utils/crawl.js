@@ -4,7 +4,7 @@
  *	
  */
 
-const config = require('./config.js');
+const config = require('../config.js');
 
 process.argv.shift(); // node
 process.argv.shift(); // crawl.js
