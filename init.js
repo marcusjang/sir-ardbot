@@ -102,7 +102,7 @@ module.exports = discord => {
 							return () => crawl(browser, site).then(products => {
 								if (!products) return Promise.reject(null);
 
-								if (config.debug.dev || config.debug.dryrun) {
+								if (!(config.debug.dev || config.debug.dryrun)) {
 									// store new products on the database (for some time at least)
 									// needs to be expunged routinely
 									const entries = products.map(product => {

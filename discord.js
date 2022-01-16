@@ -119,7 +119,7 @@ module.exports = {
 				channel = await guild.channels.create(channelName, {
 					type: 'GUILD_TEXT',
 					parent: category.id,
-					topic: site.meta.url,
+					topic: site.url,
 					permissionOverwrites: permissions
 				});
 				debug(`${channelName} successfully created`);
