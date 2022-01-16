@@ -1,10 +1,13 @@
 {
   "name": "sir-ardbot",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Sir Ardbot is a crawling bot for new listings on various online liquor retailers.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "api": "node ./utils/api.js",
+    "cmd": "node ./utils/cmd.js",
+    "crawl": "node ./utils/crawl.js"
   },
   "author": "Marcus Jang <makerpopo@gmail.com>",
   "license": "ISC",
