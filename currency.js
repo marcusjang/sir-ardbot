@@ -45,7 +45,7 @@ const keys = {
 
 const getRates = (date = new Date()) => {
 	if (config.unipass.disabled) {
-		return Promise.resolve(null);
+		return Promise.resolve({ data: null });
 	} else {
 		const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 		const nextSunday = addDays(today.setDate(today.getDate() - today.getDay()), 7);
