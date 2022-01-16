@@ -15,7 +15,11 @@ const { env } = process;
 const isTrue = string => (string === 'true');
 const isFalse = string => (string === 'false');
 
-module.exports = {
+// env.DEBUG is only used by debug module
+// but we'll give it a default vaulue
+if (!env.DEBUG) env.DEBUG = 'sir-ardbot*';
+
+const config = {
 	crawler: {
 		interval: (env.CRAWLER_INTERVAL || 90) * 1000,
 		dbcheck: !isFalse(env.CRAWLER_DBCHECK)
@@ -36,12 +40,16 @@ module.exports = {
 		console: isTrue(env.PUPPETEER_CONSOLE)
 	},
 	debug: {
-		// env.DEBUG is only used by debug module
 		dev: isTrue(env.DEV),
 		dryrun: isTrue(env.DRYRUN),
 		demo: isTrue(env.DEMO)
 	}
 }
+
+// when in dev mode print config at startup
+if (config.debug.dev) console.log(config);
+
+module.exports = config;
 
 /* sample .env
 	# .env
