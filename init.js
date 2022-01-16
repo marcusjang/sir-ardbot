@@ -4,12 +4,7 @@
  *  
  */
 
-const debugModule = require('debug');
-
-const debug = debugModule('sir-ardbot:main');
-const error = debugModule('sir-ardbot:main-error');
-debug.log = console.info.bind(console);
-error.log = console.error.bind(console);
+const { log, error } = require('./utils/debug.js')('sir-ardbot:main');
 
 const path = require('path');
 const fs = require('fs/promises');
@@ -61,7 +56,7 @@ const work = () => {
 };
 
 module.exports = () => {
-	debug(`Sir Ardbot is ready! Initialising...`);
+	log(`Sir Ardbot is ready! Initialising...`);
 
 	// dynamically reads commands
 	discord.client.commands = new Map();
@@ -69,7 +64,7 @@ module.exports = () => {
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 		.then(files => {
 			if (!config.discord.disabled) {
-				debug(`Found ${files.length} command(s), setting...`);
+				log(`Found ${files.length} command(s), setting...`);
 				for (const file of files) {
 					const command = require(`./commands/${file}`);
 					discord.client.commands.set(command.data.name, command);
@@ -82,13 +77,13 @@ module.exports = () => {
 			]).then(init => {
 				const browser = init[1];
 				// see through ./sites/* and get files
-				debug(`Let's get through what sites we have`);
+				log(`Let's get through what sites we have`);
 				return fs.readdir(path.join(__dirname, './sites/'))
 					// filtering happens here for filenames starting with '-' or not ending with .js
 					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 					.then(files => {
 						if (files.length === 0) {
-							debug(`Sir ardbot is in demo mode`);
+							log(`Sir ardbot is in demo mode`);
 							files.push('_example.js');
 						}
 
@@ -102,7 +97,7 @@ module.exports = () => {
 					})
 					.then(channelArray => {
 						queue.unitDelay = Math.floor(config.crawler.interval / channelArray.length);
-						debug(`unit delay is ${queue.unitDelay}ms per site`);
+						log(`unit delay is ${queue.unitDelay}ms per site`);
 
 						queue.array = channelArray.map(channelObj => {
 							const { site, channel } = channelObj;
@@ -121,12 +116,12 @@ module.exports = () => {
 
 									return knex.insert(entries).onConflict('url').ignore().into('products')
 										.then(() => {
-											debug(`${site}: Successfully inserted ${entries.length} entries into the DB`);
-											debug(`${site}: Returning to Discord interface with new products...`);
+											log(`${site}: Successfully inserted ${entries.length} entries into the DB`);
+											log(`${site}: Returning to Discord interface with new products...`);
 											return products;
 										})
 								} else {
-											debug(`${site}: Returning to Discord interface without inserting...`);
+											log(`${site}: Returning to Discord interface without inserting...`);
 											return products;
 								}
 							})

@@ -4,11 +4,7 @@
  *  
  */
 
-const debugModule = require('debug');
-const debug = debugModule('sir-ardbot:crawler-info');
-const error = debugModule('sir-ardbot:crawler-error');
-debug.log = console.info.bind(console);
-error.log = console.error.bind(console);
+const { log, error } = require('./utils/debug.js')('sir-ardbot:crawler');
 
 const { Buffer } = require('buffer');
 
@@ -105,7 +101,7 @@ const browse = (browser, site) => {
 const crawl = (browser, domain) => {
 	try {
 		const site = require(`./sites/${domain}.js`);
-		debug(`${domain}: Acquired sites/${domain}.js, commencing crawling...`);
+		log(`${domain}: Acquired sites/${domain}.js, commencing crawling...`);
 
 		return Promise.all([
 			browse(browser, site),
@@ -117,9 +113,9 @@ const crawl = (browser, domain) => {
 		.then(parcel => {
 			const [ results, record, currencyData ] = parcel;
 			const rates = currencyData.data;
-			debug(`${domain}: Successfully crawled ${results.length} products`);
+			log(`${domain}: Successfully crawled ${results.length} products`);
 			if (!results) return false;
-			debug(`${domain}: Reading through the database to see if any has been seen...`);
+			log(`${domain}: Reading through the database to see if any has been seen...`);
 			const set = new Set(record.map(el => el.url));
 			const products = results.filter(prod => !set.has(prod.url));
 
@@ -135,10 +131,10 @@ const crawl = (browser, domain) => {
 			}
 
 			if (!products || products.length == 0) {
-				debug(`${domain}: No new product has been found`);
+				log(`${domain}: No new product has been found`);
 				return null;
 			} else {
-				debug(`${domain}: Returning to the job queue with new products...`);
+				log(`${domain}: Returning to the job queue with new products...`);
 				return products;
 			}
 		});

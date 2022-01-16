@@ -4,8 +4,7 @@
  *	
  */
 
-const debug = require('debug')('sir-ardbot:database');
-debug.log = console.info.bind(console);
+const { log } = require('./utils/debug.js')('sir-ardbot:database');
 
 const path = require('path');
 const knex = require('knex')({
@@ -54,9 +53,9 @@ module.exports = {
 				results.forEach((result, index) => {
 					const table = tables[index];
 					if (result === 'exists') {
-						debug(`Table "${table.name}" is thankfully still in place`);
+						log(`Table "${table.name}" is thankfully still in place`);
 					} else {
-						debug(`Table "${table.name}" was missing, so new one has been created`);
+						log(`Table "${table.name}" was missing, so new one has been created`);
 					}
 				});
 

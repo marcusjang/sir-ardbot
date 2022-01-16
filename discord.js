@@ -4,8 +4,7 @@
  *  
  */
 
-const debug = require('debug')('sir-ardbot:discord');
-debug.log = console.info.bind(console);
+const { log } = require('./utils/debug.js')('sir-ardbot:discord');
 
 const config = require('./config.js');
 
@@ -49,7 +48,7 @@ module.exports = {
 
 		// go through existing channels cache and store them to sets
 		// these will be used to be check against with the files
-		debug(`Then the categories we have`);
+		log(`Then the categories we have`);
 		const categories = new Set();
 		const channels = new Set();
 		for (const [ id, channel ] of guild.channels.cache) {
@@ -57,7 +56,7 @@ module.exports = {
 			if (channel.type == 'GUILD_TEXT') channels.add(channel.name);
 		}
 
-		debug(`Found ${files.length} site files`);
+		log(`Found ${files.length} site files`);
 		for (const file of files) {
 			const site = require(`./sites/${file}`);
 
@@ -67,9 +66,9 @@ module.exports = {
 			if (!categories.has(categoryName)) {
 				// create national categories if there is none
 				// category var is set to the new category
-				debug(`${categoryName} does not exist yet, creating...`);
+				log(`${categoryName} does not exist yet, creating...`);
 				category = await guild.channels.create(categoryName, { type: 'GUILD_CATEGORY' });
-				debug(`${categoryName} successfully created`);
+				log(`${categoryName} successfully created`);
 			}
 
 			// better channel name sanitisation
@@ -113,14 +112,14 @@ module.exports = {
 				
 				// create channels if there is none
 				// channel var is set to the new channel
-				debug(`${channelName} channel does not exist yet, creating...`);
+				log(`${channelName} channel does not exist yet, creating...`);
 				channel = await guild.channels.create(channelName, {
 					type: 'GUILD_TEXT',
 					parent: category.id,
 					topic: site.url,
 					permissionOverwrites: permissions
 				});
-				debug(`${channelName} successfully created`);
+				log(`${channelName} successfully created`);
 			}
 
 			// store them to array so we can locally use them
@@ -130,13 +129,13 @@ module.exports = {
 			});
 		}
 
-		debug(`We currently have ${channelArray.length} channels`);
+		log(`We currently have ${channelArray.length} channels`);
 		return channelArray;
 	},
 	sendProducts: (channel, products) => {
 		if (!products) return false;
 
-		debug(`New products have arrived! Send them to Discord at this very moment!`);
+		log(`New products have arrived! Send them to Discord at this very moment!`);
 		const embedsArray = [];
 
 		products.forEach((product, index) => {

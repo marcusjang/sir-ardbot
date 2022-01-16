@@ -4,8 +4,7 @@
  *	
  */
 
-const debug = require('debug')('sir-ardbot:currency');
-debug.log = console.info.bind(console);
+const { log, error } = require('./utils/debug.js')('sir-ardbot:currency');
 
 const fetch = require('node-fetch');
 const { XMLParser } = require('fast-xml-parser');
@@ -54,7 +53,7 @@ const getRates = (date = new Date()) => {
 		return knex.where('expires', nextSunday.valueOf()).from('rates')
 			.then(rates => {
 				if (rates.length == 0) {
-					debug(`No current rates were found in the cache, fetching...`);
+					log(`No current rates were found in the cache, fetching...`);
 					return fetch(getApiUrl(future))
 						.then(response => response.text())
 						.then(text => parser.parse(text))
@@ -76,8 +75,8 @@ const getRates = (date = new Date()) => {
 							};
 						})
 						.then(data => {
-							debug(`Fetched data, new expiration date is ${new Date(data.expires)}`);
-							debug(`Pushing the fetched data into the database...`);
+							log(`Fetched data, new expiration date is ${new Date(data.expires)}`);
+							log(`Pushing the fetched data into the database...`);
 							return knex.insert(data).onConflict('expires').ignore().into('rates')
 								.then(() => data);
 						});
