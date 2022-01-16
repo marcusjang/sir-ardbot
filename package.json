@@ -1,7 +1,7 @@
 {
   "name": "sir-ardbot",
-  "version": "1.5.3",
-  "description": "Sir Ardbot is a crawling bot for new listings on various online liquor retailers.",
+  "version": "1.5.4",
+  "description": "Sir Ardbot is a crawling bot for new listings on various online retailers.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
