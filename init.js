@@ -107,7 +107,7 @@ module.exports = () => {
 										// needs to be expunged routinely
 										const entries = products.map(product => {
 											return {
-												site: product.site,
+												site: product.site.domain,
 												url: product.url
 											}
 										});

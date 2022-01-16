@@ -37,10 +37,10 @@ const errorHandler = (err, domain) => {
 		error(`${domain}: We somehow timed out?! Maybe it's nothing...`);
 	} else if (err.code != 'SQLITE_CONSTRAINT') {
 		error(`${domain}: I'm sure it's nothing, but there was an (allowed) database conflic:`);
-		error(err.message);
+		console.error(err);
 	} else {
 		error(`${domain}: We had some uncertain error- to be specific:`);
-		error(err.message);
+		console.error(err);
 	}
 	return false;
 };
@@ -92,7 +92,7 @@ module.exports = (browser, domain) => {
 				return page.goto(site.url, { waitUntil: [ 'load' ] })
 					.catch(err => errorHandler(err, domain))
 					.then(() => {
-						return site.getPuppet(page)
+						return site.getProducts(page)
 							.then(results => results.reverse())
 							.catch(err => errorHandler(err, domain))
 							.finally(() => page.close())
@@ -117,8 +117,8 @@ module.exports = (browser, domain) => {
 					if (rates[prod.currency]) {
 						prod.priceUSD = Math.round(
 							prod.price *
-							rates[prod.currency].rate /
-							rates.USD.rate * 100
+							rates[prod.site.meta.currency].rate /
+							rates['USD'].rate * 100
 						) / 100;
 					}
 				});

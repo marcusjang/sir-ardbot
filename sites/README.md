@@ -199,7 +199,7 @@ The function included in `_example.js` is a simple, fun function that generates 
 
 
 ## The Product Object
-The product object is a simple Javascript object that contains essential informations about the product.
+The product object is a simple Javascript class object that contains essential informations about the product.
 ```js
         const product = {};
 
@@ -213,4 +213,4 @@ The product object is a simple Javascript object that contains essential informa
 ```
 Each properties are *hopefully* self describing, and won't require further details.
 
-As seen in [`classes/site.js`](../classes/site.js), each property has some checks and trimming functionss in places. Some details like `product.abv` or `product.size` can also be omitted.
+As seen in [`classes/product.js`](../classes/product.js), each property has some checks and trimming functionss in places. Some details like `product.abv` or `product.size` can also be omitted.

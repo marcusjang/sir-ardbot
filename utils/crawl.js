@@ -7,6 +7,7 @@
 process.argv.shift(); // node
 process.argv.shift(); // crawl.js
 
+const util = require('util');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
@@ -30,11 +31,19 @@ if (puppeteerPath && puppeteerPath !== '') {
 
 const siteName = process.argv.shift();
 
+const print = message => console.log(
+	util.inspect(message, {
+		showHidden: false,
+		depth: null,
+		colors: true
+	})
+);
+
 puppeteer.launch(puppeteerOptions).then(browser => {
 	return crawl(browser, siteName)
 		.then(results => {
-			console.log(results);
-			console.log(`Successfully crawled ${results.length} results`);
+			print(results);
+			print(`Successfully crawled ${results.length} results`);
 		})
 		.finally(() => {
 			browser.close();

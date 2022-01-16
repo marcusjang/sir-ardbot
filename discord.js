@@ -153,7 +153,7 @@ module.exports = {
 				thumbnail: { url: product.img },
 				fields: [{
 					name: 'Price (excl. VAT)',
-					value: `${product.price} ${product.currency} (≒ ${product.priceUSD} USD)`,
+					value: `${product.price} ${product.site.meta.currency} (≒ ${product.priceUSD} USD)`,
 					inline: true
 				}],
 				timestamp: new Date()
