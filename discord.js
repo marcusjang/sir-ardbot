@@ -1,14 +1,13 @@
 /*
- *  discord.js
- *  	just a bunch of discord related stuffs
+ *	discord.js
+ *		just a bunch of discord related stuffs
  *  
  */
 
-const config = require('./config.js');
-
 const debug = require('debug')('sir-ardbot:discord');
-      debug.log = console.info.bind(console);
-const path = require('path');
+debug.log = console.info.bind(console);
+
+const config = require('./config.js');
 
 let client;
 
@@ -36,13 +35,12 @@ if (!config.discord.disabled) {
 } else {
 	const EventEmitter = require('events');
 	client = new EventEmitter();
-    client.login = () => setInterval(() => client.emit('ready'), 500);
-    client.destroy = () => null;
+	client.login = () => setInterval(() => client.emit('ready'), 500);
+	client.destroy = () => null;
 }
 
 module.exports = {
 	client: client,
-	login: (token = config.discord.token) => client.login(token),
 	initChannels: async (files) => {
 		// guild is stored in the .env 
 		const guild = client.guilds.cache.get(config.discord.guildID);

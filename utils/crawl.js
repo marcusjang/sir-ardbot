@@ -4,12 +4,12 @@
  *	
  */
 
+const config = require('./config.js');
+
 process.argv.shift(); // node
 process.argv.shift(); // crawl.js
 
 process.env.DEBUG = 'sir-ardbot:*';
-
-const config = require('../config.js');
 
 const puppeteer = require('puppeteer');
 const util = require('util');

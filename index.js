@@ -1,19 +1,15 @@
 /*
- *  index.js
- *  	just calls discord and init then peaces out
- *  
+ *	index.js
+ *		just calls discord and init then peaces out
+ *	
  */
 
-// this is done here but we won't be using process.env as is
-// that's where config.js comes in
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
-
+const config = require('./config.js');
 const discord = require('./discord.js');
 
 // everything starts when the Discord client is ready
-discord.login();
-discord.client.once('ready', () => require('./init.js')(discord));
+discord.client.login(config.discord.token);
+discord.client.once('ready', require('./init.js'));
 
 const exitHandler = code => {
 	discord.client.destroy();

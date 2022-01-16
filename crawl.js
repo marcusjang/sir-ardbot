@@ -1,20 +1,20 @@
 /*
- *  crawl.js
- *  	stuffs to interface with puppeteer
+ *	crawl.js
+ *		stuffs to interface with puppeteer
  *  
  */
 
-const config = require('./config.js');
-
 const debugModule = require('debug');
 const debug = debugModule('sir-ardbot:crawler-info');
-      debug.log = console.info.bind(console);
 const error = debugModule('sir-ardbot:crawler-error');
-      error.log = console.error.bind(console);
+debug.log = console.info.bind(console);
+error.log = console.error.bind(console);
+
 const { Buffer } = require('buffer');
 
+const config = require('./config.js');
 const { knex } = require('./database.js');
-const currency = require('./currency.js');
+const { getRates } = require('./currency.js');
 
 // just a simple handler for (currently small) smorgasboard of errors
 const errorHandler = (err, domain) => {
@@ -59,7 +59,10 @@ const requestHandler = req => {
 		// images are handled separately to not trigger onError() 
 		req.respond({
 			status: 200,
-			headers: { 'Content-Length': emptyImage.length,  'Content-Type': 'image/gif' },
+			headers: {
+				'Content-Length': emptyImage.length,
+				'Content-Type': 'image/gif'
+			},
 			body: emptyImage // see? how graceful
 		});
 	} else if (denyTypes.includes(req.resourceType())) {
@@ -70,43 +73,50 @@ const requestHandler = req => {
 	}
 };
 
-module.exports = (browser, domain) => {
+const browse = (browser, site) => {
+	return browser.newPage().then(page => {
+		return Promise.all([
+			page.setDefaultTimeout(config.puppeteer.timeout),
+			page.setRequestInterception(true),
+			(site.cookies) ?
+				page.setExtraHTTPHeaders({ cookie: site.cookies }) :
+				Promise.resolve()
+		]).then(() => page);
+	})
+	.then(page => {
+		// for debuging purposes
+		if (config.puppeteer.console)
+			page.on('console', relayConsole);
+
+		// request rejection on selected types
+		page.on('request', requestHandler);
+		
+		return page.goto(site.url, { waitUntil: [ 'load' ] })
+			.catch(err => errorHandler(err, domain))
+			.then(() => {
+				return site.getProducts(page)
+					.then(results => results.reverse())
+					.catch(err => errorHandler(err, domain))
+					.finally(() => page.close())
+			});
+	});
+};
+
+const crawl = (browser, domain) => {
 	try {
 		const site = require(`./sites/${domain}.js`);
-		debug(`${domain}: Acquired ./sites/${domain}.js, commencing crawling...`);
-
-		const browse = () => browser.newPage()
-			.then(page => {
-				return Promise.all([
-					page.setDefaultTimeout(config.puppeteer.timeout),
-					page.setRequestInterception(true),
-					(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
-				]).then(() => page);
-			})
-			.then(page => {
-				// for debuging purposes
-				if (config.puppeteer.console) page.on('console', relayConsole);
-
-				// request rejection on selected types
-				page.on('request', requestHandler);
-				
-				return page.goto(site.url, { waitUntil: [ 'load' ] })
-					.catch(err => errorHandler(err, domain))
-					.then(() => {
-						return site.getProducts(page)
-							.then(results => results.reverse())
-							.catch(err => errorHandler(err, domain))
-							.finally(() => page.close())
-					});
-			});
+		debug(`${domain}: Acquired sites/${domain}.js, commencing crawling...`);
 
 		return Promise.all([
-			browse(),
-			(config.crawler.dbcheck) ? knex.where('site', domain).select('url').from('products') : Promise.resolve([]),
-			currency.getRates()
+			browse(browser, site),
+			(config.crawler.dbcheck) ?
+				knex.where('site', domain).select('url').from('products') :
+				Promise.resolve([]),
+			getRates()
 		])
 		.then(parcel => {
-			const [ results, record, rates ] = parcel;
+			const [ results, record, currencyData ] = parcel;
+			const rates = currencyData.data;
 			debug(`${domain}: Successfully crawled ${results.length} products`);
 			if (!results) return false;
 			debug(`${domain}: Reading through the database to see if any has been seen...`);
@@ -115,12 +125,11 @@ module.exports = (browser, domain) => {
 
 			if (!config.unipass.disabled) {
 				products.forEach(prod => {
-					if (prod.site.meta.currency !== 'USD' && rates[prod.site.meta.currency]) {
-						prod.priceUSD = Math.round(
-							prod.price *
-							rates[prod.site.meta.currency].rate /
-							rates['USD'].rate * 100
-						) / 100;
+					const currency = prod.site.meta.currency;
+					if (currency !== 'USD' && rates[currency]) {
+						const priceUSD = prod.price * (rates[currency] / rates['USD']);
+						// two decimal places
+						prod.priceUSD = Math.round(priceUSD * 100) / 100;
 					}
 				});
 			}
@@ -137,3 +146,5 @@ module.exports = (browser, domain) => {
 		errorHandler(err, 'database');
 	}
 }
+
+module.exports = { crawl };

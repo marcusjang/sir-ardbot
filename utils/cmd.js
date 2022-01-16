@@ -1,8 +1,11 @@
 /*
- *  utils/cmd.js
- *  @usage node cmd option0=value0, option1=value1,  ... , optionN=valueN
+ *	utils/cmd.js
+ *	@usage node cmd option0=value0, option1=value1,  ... , optionN=valueN
  *	
  */
+
+const config = require('../config.js');
+
 const util = require('util');
 
 process.argv.shift(); // node

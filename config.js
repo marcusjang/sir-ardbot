@@ -1,8 +1,12 @@
 /*
- *  config.js
- *  	normalizes env vars with defaults
- *  
+ *	config.js
+ *		normalizes env vars with defaults
+ *	
  */
+
+// we won't be using process.env as is
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const { env } = process;
 
@@ -20,11 +24,11 @@ module.exports = {
 		token: env.DISCORD_TOKEN,
 		guildID: env.DISCORD_GUILD_ID,
 		roleIDs: (env.DISCORD_ROLE_ID || '').split(','),
-		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED))
+		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED) || isTrue(env.DEMO))
 	},
 	unipass: {
 		token: env.UNIPASS_TOKEN,
-		disabled: (!env.UNIPASS_TOKEN || isTrue(env.UNIPASS_DISABLED))
+		disabled: (!env.UNIPASS_TOKEN || isTrue(env.UNIPASS_DISABLED) || isTrue(env.DEMO))
 	},
 	puppeteer: {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
@@ -34,7 +38,8 @@ module.exports = {
 	debug: {
 		// env.DEBUG is only used by debug module
 		dev: isTrue(env.DEV),
-		dryrun: isTrue(env.DRYRUN)
+		dryrun: isTrue(env.DRYRUN),
+		demo: isTrue(env.DEMO)
 	}
 }
 
@@ -64,4 +69,5 @@ module.exports = {
 	DEBUG=sir-ardbot:*
 	DEV=true
 	DRYRUN=true
+	DEMO=false
 */
