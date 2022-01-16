@@ -23,7 +23,6 @@ const tables = [
 			table.increments();
 			table.string('site');
 			table.string('url').unique();
-			table.boolean('available');
 			table.timestamp('created_at').defaultTo(knex.fn.now());
 		}
 	}
