@@ -78,7 +78,7 @@ module.exports = () => {
 		})
 		.then(() => Promise.all([
 				database.init(), // initialise the database, returns nothing useful
-				puppeteer.launch(puppeteerOptions)
+				puppeteer.launch(config.puppeteer.options)
 			]).then(init => {
 				const browser = init[1];
 				// see through ./sites/* and get files

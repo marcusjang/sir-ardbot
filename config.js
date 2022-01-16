@@ -8,6 +8,8 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+const print = require('./utils/print.js');
+
 const { env } = process;
 
 // these checks are done exclusively
@@ -37,7 +39,8 @@ const config = {
 	puppeteer: {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
 		path: env.PUPPETEER_PATH || false,
-		console: isTrue(env.PUPPETEER_CONSOLE)
+		console: isTrue(env.PUPPETEER_CONSOLE),
+		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] }
 	},
 	debug: {
 		dev: isTrue(env.DEV),
@@ -46,8 +49,13 @@ const config = {
 	}
 }
 
+if (config.puppeteer.path) {
+	config.puppeteer.options.product = 'chrome';
+	config.puppeteer.options.executablePath = config.puppeteer.path;
+}
+
 // when in dev mode print config at startup
-if (config.debug.dev) console.log(config);
+if (config.debug.dev) print(config);
 
 module.exports = config;
 

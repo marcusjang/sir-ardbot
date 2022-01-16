@@ -5,8 +5,8 @@
  */
 
 const config = require('../config.js');
+const print = require('../utils/print.js');
 
-const util = require('util');
 const path = require('path');
 const fetch = require('node-fetch');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
@@ -28,14 +28,6 @@ const url = {
 		return baseUrl + `/applications/${appID}/guilds/${guildID}/commands`;
 	}
 };
-
-const print = message => console.log(
-	util.inspect(message, {
-		showHidden: false,
-		depth: null,
-		colors: true
-	})
-);
 
 const request = (url, method = 'get', body) => {
 	const options = { method: method, headers: headers };

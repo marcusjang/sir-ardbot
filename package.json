@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "api": "node ./utils/api.js",
-    "cmd": "node ./utils/cmd.js",
-    "crawl": "node ./utils/crawl.js"
+    "api": "node ./scripts/api.js",
+    "cmd": "node ./scripts/cmd.js",
+    "crawl": "node ./scripts/crawl.js"
   },
   "author": "Marcus Jang <makerpopo@gmail.com>",
   "license": "ISC",
