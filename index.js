@@ -4,8 +4,9 @@
  *  
  */
 
+// this is done here but we won't be using process.env as is
+// that's where config.js comes in
 const path = require('path');
-
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const discord = require('./discord.js');

@@ -4,6 +4,8 @@
  *  
  */
 
+const config = require('./config.js');
+
 const debugModule = require('debug');
 const debug = debugModule('sir-ardbot:main');
       debug.log = console.info.bind(console);
@@ -24,17 +26,13 @@ const queue = {
 	arrayCopy: [],
 	pending: false,
 	working: false,
-	unitDelay: 2500 // the base amount of time in between jobs
-					// used to not clog up the http req, will be overwritten depending on the job size
+	unitDelay: 2500 // just a placeholder default value that basically does nothing
 }
 
-const interval = (process.env.CRAWLER_INTERVAL || 90) * 1000; // theorically each site should be crawled every 90 seconds
 const puppeteerOptions = { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] };
-const puppeteerPath = process.env.PUPPETEER_PATH || false;
-
-if (puppeteerPath && puppeteerPath !== '') {
+if (config.puppeteer.path) {
 	puppeteerOptions.product = 'chrome';
-	puppeteerOptions.executablePath = puppeteerPath;
+	puppeteerOptions.executablePath = config.puppeteer.path;
 }
 
 const work = () => {
@@ -64,10 +62,12 @@ module.exports = discord => {
 	fs.readdir(path.join(__dirname, './commands/'))
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 		.then(files => {
-			debug(`Found ${files.length} command(s), setting...`);
-			for (const file of files) {
-				const command = require(`./commands/${file}`);
-				discord.client.commands.set(command.data.name, command);
+			if (!config.discord.disabled) {
+				debug(`Found ${files.length} command(s), setting...`);
+				for (const file of files) {
+					const command = require(`./commands/${file}`);
+					discord.client.commands.set(command.data.name, command);
+				}
 			}
 		})
 		.then(() => Promise.all([
@@ -82,13 +82,19 @@ module.exports = discord => {
 					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 					.then(files => {
 						if (files.length > 0) {
-							return discord.initChannels(files);
+							if (config.discord.disabled) {
+								return files.map(file => {
+									return { site: file.replace('.js', ''), channel: null };
+								});
+							} else {
+								return discord.initChannels(files);
+							}
 						} else {
 							return [ { site: '_example', channel: null } ];
 						}
 					})
 					.then(channelArray => {
-						queue.unitDelay = Math.floor(interval / channelArray.length);
+						queue.unitDelay = Math.floor(config.crawler.interval / channelArray.length);
 						debug(`unit delay is ${queue.unitDelay}ms per site`);
 
 						queue.array = channelArray.map(channelObj => {
@@ -96,7 +102,7 @@ module.exports = discord => {
 							return () => crawl(browser, site).then(products => {
 								if (!products) return Promise.reject(null);
 
-								if ((process.env.DRYRUN === 'true') || !(process.env.DEV === 'true')) {
+								if (config.debug.dev || config.debug.dryrun) {
 									// store new products on the database (for some time at least)
 									// needs to be expunged routinely
 									const entries = products.map(product => {

@@ -4,18 +4,15 @@
  *  
  */
 
+const config = require('./config.js');
+
 const debug = require('debug')('sir-ardbot:discord');
       debug.log = console.info.bind(console);
 const path = require('path');
 
-const discordToken = process.env.DISCORD_TOKEN;
-const guildID = process.env.DISCORD_GUILD_ID;
-const roleIDs = (process.env.DISCORD_ROLE_ID || '').split(',');
-const enabled = !((!discordToken || typeof discordToken !== 'string') || process.env.DISCORD_DISABLED === 'true');
-
 let client;
 
-if (enabled) {
+if (!config.discord.disabled) {
 	const { Client, Intents } = require('discord.js');
 	client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -44,12 +41,11 @@ if (enabled) {
 }
 
 module.exports = {
-	enabled: enabled,
 	client: client,
-	login: (token = discordToken) => client.login(token),
+	login: (token = config.discord.token) => client.login(token),
 	initChannels: async (files) => {
 		// guild is stored in the .env 
-		const guild = client.guilds.cache.get(guildID);
+		const guild = client.guilds.cache.get(config.discord.guildID);
 
 		const channelArray = [];
 
@@ -102,9 +98,9 @@ module.exports = {
 				];
 
 				// set to hidden channel accordingly
-				if (site.hidden && roleIDs && roleIDs[0] != '') {
+				if (site.hidden && config.discord.roleIDs[0] != '') {
 					permissions[0].deny.push('VIEW_CHANNEL');
-					for (const roleID of roleIDs) {
+					for (const roleID of config.discord.roleIDs) {
 						const role = guild.roles.cache.get(roleID);
 						if (roleID && role) {
 							permissions.push({
@@ -184,7 +180,7 @@ module.exports = {
 		});
 
 		return Promise.all(embedsArray.map(embeds => {
-			if (!(process.env.DEV === 'true') && enabled) {
+			if (!(config.debug.dev || config.discord.disabled)) {
 				return channel.send({ embeds: embeds });
 			} else {
 				return embeds.forEach(embed => console.log(embed.title, embed.timestamp, embed.url));

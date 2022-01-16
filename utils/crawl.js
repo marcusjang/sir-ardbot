@@ -7,26 +7,24 @@
 process.argv.shift(); // node
 process.argv.shift(); // crawl.js
 
-const util = require('util');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-
-process.env.CRAWLER_DBCHECK = false;
-process.env.DISCORD_DISABLED = true;
-process.env.UNIPASS_DISABLED = true;
 process.env.DEBUG = 'sir-ardbot:*';
-process.env.DEV = true;
-process.env.DRYRUN = true;
+
+const config = require('../config.js');
 
 const puppeteer = require('puppeteer');
+const util = require('util');
 const crawl = require('../crawl.js');
 
-const puppeteerOptions = { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] };
-const puppeteerPath = process.env.PUPPETEER_PATH || false;
+config.crawler.dbcheck = false;
+config.discord.disabled = true;
+config.unipass.disabled = true;
+config.debug.dev = true;
+config.debug.dryrun = true;
 
-if (puppeteerPath && puppeteerPath !== '') {
+const puppeteerOptions = { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] };
+if (config.puppeteer.path) {
 	puppeteerOptions.product = 'chrome';
-	puppeteerOptions.executablePath = puppeteerPath;
+	puppeteerOptions.executablePath = config.puppeteer.path;
 }
 
 const siteName = process.argv.shift();

@@ -4,6 +4,8 @@
  *  
  */
 
+const config = require('./config.js');
+
 const debug = require('debug')('sir-ardbot:currency');
       debug.log = console.info.bind(console);
 const fetch = require('node-fetch');
@@ -11,9 +13,6 @@ const { XMLParser } = require('fast-xml-parser');
 const parser = new XMLParser();
 
 const { knex } = require('./database.js');
-
-const token = process.env.UNIPASS_TOKEN;
-const enabled = !(!token || (process.env.UNIPASS_DISABLED === 'true'));
 
 // a bunch of Date related stuffs that makes me weep
 const addDays = (date, days) => new Date(date.valueOf() + (days*24*60*60*1000));
@@ -33,12 +32,11 @@ const future = addDays(today.setDate(today.getDate() - today.getDay()), 3);
 
 // See https://unipass.customs.go.kr for more information
 const url = 'https://unipass.customs.go.kr:38010/ext/rest/trifFxrtInfoQry/retrieveTrifFxrtInfo'
-			+ `?crkyCn=${token}&imexTp=2&qryYymmDd=${toYyMMdd(future)}`;
+			+ `?crkyCn=${config.unipass.token}&imexTp=2&qryYymmDd=${toYyMMdd(future)}`;
 
 module.exports = {
-	enabled: enabled,
 	getRates: () => {
-		if (!enabled) {
+		if (config.unipass.disabled) {
 			return Promise.resolve(null);
 		} else {
 			return knex.where('expires', nextSunday.valueOf()).from('rates')

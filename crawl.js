@@ -4,6 +4,8 @@
  *  
  */
 
+const config = require('./config.js');
+
 const debugModule = require('debug');
 const debug = debugModule('sir-ardbot:crawler-info');
       debug.log = console.info.bind(console);
@@ -13,10 +15,6 @@ const { Buffer } = require('buffer');
 
 const { knex } = require('./database.js');
 const currency = require('./currency.js');
-
-const timeout = +process.env.PUPPETEER_TIMEOUT || 10000;
-const pptrConsoleRelay = (process.env.PUPPETEER_CONSOLE === 'true');
-const dbCheck = (process.env.CRAWLER_DBCHECK !== 'false');
 
 // just a simple handler for (currently small) smorgasboard of errors
 const errorHandler = (err, domain) => {
@@ -80,14 +78,14 @@ module.exports = (browser, domain) => {
 		const browse = () => browser.newPage()
 			.then(page => {
 				return Promise.all([
-					page.setDefaultTimeout(timeout),
+					page.setDefaultTimeout(config.puppeteer.timeout),
 					page.setRequestInterception(true),
 					(site.cookies) ? page.setExtraHTTPHeaders({ cookie: site.cookies }) : Promise.resolve()
 				]).then(() => page);
 			})
 			.then(page => {
 				// for debuging purposes
-				if (pptrConsoleRelay) page.on('console', relayConsole);
+				if (config.puppeteer.console) page.on('console', relayConsole);
 
 				// request rejection on selected types
 				page.on('request', requestHandler);
@@ -104,7 +102,7 @@ module.exports = (browser, domain) => {
 
 		return Promise.all([
 			browse(),
-			(dbCheck) ? knex.where('site', domain).select('url').from('products') : Promise.resolve([]),
+			(config.crawler.dbcheck) ? knex.where('site', domain).select('url').from('products') : Promise.resolve([]),
 			currency.getRates()
 		])
 		.then(parcel => {
@@ -115,7 +113,7 @@ module.exports = (browser, domain) => {
 			const set = new Set(record.map(el => el.url));
 			const products = results.filter(prod => !set.has(prod.url));
 
-			if (currency.enabled) {
+			if (!config.unipass.disabled) {
 				products.forEach(prod => {
 					if (prod.site.meta.currency !== 'USD' && rates[prod.site.meta.currency]) {
 						prod.priceUSD = Math.round(

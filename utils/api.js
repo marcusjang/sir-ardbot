@@ -4,6 +4,8 @@
  *	
  */
 
+const config = require('../config.js');
+
 const util = require('util');
 const path = require('path');
 const fetch = require('node-fetch');
@@ -13,7 +15,7 @@ process.argv.shift(); // node
 process.argv.shift(); // api.js
 
 const headers = {
-	'Authorization': `Bot ${process.env.DISCORD_TOKEN}`,
+	'Authorization': `Bot ${config.discord.token}`,
 	'Content-Type': 'application/json'
 };
 

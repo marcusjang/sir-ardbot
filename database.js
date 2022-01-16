@@ -4,10 +4,12 @@
  *  
  */
 
+const config = require('./config.js');
+
 const path = require('path');
 const debug = require('debug')('sir-ardbot:database');
       debug.log = console.info.bind(console);
-      
+
 const knex = require('knex')({
 	client: 'sqlite3',
 	connection: { filename: path.join(__dirname, './data.db') },
@@ -24,8 +26,11 @@ const tables = [
 			table.boolean('available');
 			table.timestamp('created_at').defaultTo(knex.fn.now());
 		}
-	},
-	{
+	}
+];
+
+if (!config.unipass.disabled) {
+	tables.push({
 		name: 'rates',
 		create: table => {
 			table.increments();
@@ -33,8 +38,8 @@ const tables = [
 			table.text('data');
 			table.timestamp('created_at').defaultTo(knex.fn.now());
 		}
-	}
-]
+	});
+}
 
 module.exports = {
 	knex: knex,
