@@ -55,6 +55,7 @@ read further up on [`.env` Configurations](#env-configurations) and other module
 
 # Crawler
 CRAWLER_INTERVAL=90
+CRAWLER_DBCHECK=true
 
 # Discord
 DISCORD_TOKEN=your_discord_token_goes_here
@@ -69,6 +70,7 @@ UNIPASS_DISABLE=false
 # Puppeteer
 PUPPETEER_TIMEOUT=10000
 PUPPETEER_PATH=
+PUPPETEER_CONSOLE=false
 
 # Debug
 DEBUG=sir-ardbot:*
@@ -82,6 +84,9 @@ Environments variable are mostly optional just to run the bot, but for the full 
  * `CRAWLER_INTERVAL` (in seconds)  
    Sets the overall crawling interval in seconds. Defaults to 90s
 
+ * `CRAWLER_DBCHECK` = `true|false`  
+   If set to `false`, the crawler will skip checking the database to see if the product has been seen
+
 #### Discord Configurations
 If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit out the results onto the console.
  * `DISCORD_TOKEN`  
@@ -94,14 +99,14 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    If set, site output channels with hidden flags will be shown to people with one of these roles. Supports multiple roles separated by comma(,)
 
  * `DISCORD_DISABLE` = `true|false`  
-   Overides and disables Discord functionality of the bot when set to true
+   Overides and disables Discord functionality of the bot when set to `true`
     
 #### Unipass Configurations
  * `UNIPASS_TOKEN`  
    Used for fetching currency exchange rate via Unipass OpenAPI (for calculating prices into USD). Will skip checking if left blank. Read further on [Unipass Portal](https://unipass.customs.go.kr/)
    
  * `UNIPASS_DISABLE` = `true|false`  
-   Overides and disables currency-related parts of the bot altogether when set to true
+   Overides and disables currency-related parts of the bot altogether when set to `true`
    
 #### Puppeteer Configurations
  * `PUPPETEER_TIMEOUT` (in miliseconds)  
@@ -109,6 +114,9 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    
  * `PUPPETEER_PATH`  
    Sets Puppeteer excutable path for Chromium in case you want to specify a separate Chromium installation (i.e. on Raspberry Pis, etc.)
+   
+ * `PUPPETEER_CONSOLE` = `true|false`  
+   If set to `true`, the `console` output will be relayed to the nodejs `console`
    
 #### Debug Configurations
  * `DEBUG`  
