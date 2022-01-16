@@ -21,7 +21,7 @@ const discord = require('./discord.js');
 const database = require('./database.js');
 const knex = database.knex;
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delay = require('./utils/delay.js');
 
 const queue = {
 	array: [],
