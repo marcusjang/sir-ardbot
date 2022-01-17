@@ -88,11 +88,11 @@ const browse = (browser, site) => {
 		page.on('request', requestHandler);
 		
 		return page.goto(site.url, { waitUntil: [ 'load' ] })
-			.catch(err => errorHandler(err, domain))
+			.catch(err => errorHandler(err, site.domain))
 			.then(() => {
 				return site.getProducts(page)
 					.then(results => results.reverse())
-					.catch(err => errorHandler(err, domain))
+					.catch(err => errorHandler(err, site.domain))
 					.finally(() => page.close())
 			});
 	});
