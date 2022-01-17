@@ -43,60 +43,56 @@ const keys = {
 };
 
 const getRates = (date = new Date()) => {
-	if (config.unipass.disabled) {
-		return Promise.resolve({ data: null });
-	} else {
-		const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-		const nextSunday = addDays(today.setDate(today.getDate() - today.getDay()), 7);
-		const future = addDays(today.setDate(today.getDate() - today.getDay()), 3);
+	const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	const nextSunday = addDays(today.setDate(today.getDate() - today.getDay()), 7);
+	const future = addDays(today.setDate(today.getDate() - today.getDay()), 3);
 
-		return knex.where('expires', nextSunday.valueOf()).from('rates')
-			.then(rates => {
-				if (rates.length == 0) {
-					log(`No current rates were found in the cache, fetching...`);
-					return fetch(getApiUrl(future))
-						.then(response => response.text())
-						.then(text => parser.parse(text))
-						.then(data => {
-							const results = data[keys.return][keys.result];
-							const rates = {};
+	return knex.where('expires', nextSunday.valueOf()).from('rates')
+		.then(rates => {
+			if (rates.length == 0) {
+				log(`No current rates were found in the cache, fetching...`);
+				return fetch(getApiUrl(future))
+					.then(response => response.text())
+					.then(text => parser.parse(text))
+					.then(data => {
+						const results = data[keys.return][keys.result];
+						const rates = {};
 
-							results.forEach(rate => {
-								const currency = rate[keys.currency];
-								rates[currency] = rate[keys.rate];
-							});
-
-							const starts = results[0][keys.begins];
-							const expires = addDays(toDate(starts, true), 7);
-
-							return {
-								expires: expires.valueOf(),
-								data: JSON.stringify(rates)
-							};
-						})
-						.then(data => {
-							log(`Fetched data, new expiration date is ${new Date(data.expires)}`);
-							log(`Pushing the fetched data into the database...`);
-							return knex.insert(data).onConflict('expires').ignore().into('rates')
-								.then(() => data);
+						results.forEach(rate => {
+							const currency = rate[keys.currency];
+							rates[currency] = rate[keys.rate];
 						});
-				} else {
-					return rates[0];
-				}
-			})
-			.then(rates => {
-				rates.data = JSON.parse(rates.data);
 
-				// just to keep some kind of backward compatibility for now
-				// will be phased out in future probably
-				if (Object.values(rates.data)[0].hasOwnProperty('currency')) {
-					return knex.where('expires', rates.expires).from('rates').del()
-						.then(() => getRates());
-				}
+						const starts = results[0][keys.begins];
+						const expires = addDays(toDate(starts, true), 7);
 
-				return rates;
-			});
-	}
+						return {
+							expires: expires.valueOf(),
+							data: JSON.stringify(rates)
+						};
+					})
+					.then(data => {
+						log(`Fetched data, new expiration date is ${new Date(data.expires)}`);
+						log(`Pushing the fetched data into the database...`);
+						return knex.insert(data).onConflict('expires').ignore().into('rates')
+							.then(() => data);
+					});
+			} else {
+				return rates[0];
+			}
+		})
+		.then(rates => {
+			rates.data = JSON.parse(rates.data);
+
+			// just to keep some kind of backward compatibility for now
+			// will be phased out in future probably
+			if (Object.values(rates.data)[0].hasOwnProperty('currency')) {
+				return knex.where('expires', rates.expires).from('rates').del()
+					.then(() => getRates());
+			}
+
+			return rates;
+		});
 };
 
 module.exports = { getRates };

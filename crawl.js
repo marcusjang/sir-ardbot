@@ -9,7 +9,7 @@ const { log, error } = require('./utils/debug.js')('sir-ardbot:crawler');
 const { Buffer } = require('buffer');
 
 const config = require('./config.js');
-const { knex } = require('./database.js');
+const { getRecords, putRecords } = require('./database.js');
 const { getRates } = require('./currency.js');
 
 // just a simple handler for (currently small) smorgasboard of errors
@@ -99,27 +99,33 @@ const browse = (browser, site) => {
 };
 
 const crawl = (browser, domain) => {
-	try {
-		const site = require(`./sites/${domain}.js`);
-		log(`${domain}: Acquired sites/${domain}.js, commencing crawling...`);
+	const site = require(`./sites/${domain}.js`);
+	log(`${domain}: Acquired sites/${domain}.js, commencing crawling...`);
 
-		return Promise.all([
-			browse(browser, site),
-			(config.crawler.dbcheck) ?
-				knex.where('site', domain).select('url').from('products') :
-				Promise.resolve([]),
-			getRates()
-		])
+	const limit = (site.limit) ? site.limit * 4 : 200; // just some random big-ish number
+
+	const jobs = [ browse(browser, site) ];
+	if (config.crawler.dbcheck) jobs.push(getRecords(domain, limit));
+	if (!config.unipass.disabled) jobs.push(getRates());
+
+	return Promise.all(jobs)
 		.then(parcel => {
-			const [ results, record, currencyData ] = parcel;
-			const rates = currencyData.data;
-			log(`${domain}: Successfully crawled ${results.length} products`);
-			if (!results) return false;
-			log(`${domain}: Reading through the database to see if any has been seen...`);
-			const set = new Set(record.map(el => el.url));
-			const products = results.filter(prod => !set.has(prod.url));
+			let products = parcel.shift();
+			const records = (config.crawler.dbcheck) ? parcel.shift() : false;
+			const currencyData = (!config.unipass.disabled) ? parcel.shift() : false;
 
-			if (!config.unipass.disabled) {
+			if (!products) return [];
+
+			log(`${domain}: Successfully crawled ${products.length} products`);
+
+			if (records) {
+				log(`${domain}: Reading through the database to see if any has been seen...`);
+				const set = new Set(records.map(el => el.url));
+				products = products.filter(prod => !set.has(prod.url));
+			}
+
+			if (currencyData) {
+				const rates = currencyData.data;
 				products.forEach(prod => {
 					const currency = prod.site.meta.currency;
 					if (currency !== 'USD' && rates[currency]) {
@@ -130,17 +136,21 @@ const crawl = (browser, domain) => {
 				});
 			}
 
-			if (!products || products.length == 0) {
+			return products;
+		})
+		.then(products => {
+			if (products.length == 0) {
 				log(`${domain}: No new product has been found`);
-				return null;
-			} else {
-				log(`${domain}: Returning to the job queue with new products...`);
-				return products;
+				return Promise.reject(null);
 			}
+			
+			log(`${domain}: ${products.length} products are new`);
+
+			const toSave = !config.debug.demo && (config.debug.dryrun || !config.debug.dev);
+			if (!toSave) return products;
+
+			return putRecords(products).then(() => products);
 		});
-	} catch(err) {
-		errorHandler(err, 'database');
-	}
 }
 
 module.exports = { crawl };

@@ -59,8 +59,25 @@ module.exports = {
 					}
 				});
 
-				return true;
+				return knex;
 			});
 		});
+	},
+	getRecords: (site, limit) => {
+		let products = knex.select('url', 'created_at')
+				.where('site', site)
+				.from('products')
+				.orderBy('created_at', 'desc');
+
+		if (limit) products = products.limit(limit);
+
+		return products;
+	},
+	putRecords: (products) => {
+		const records = products.map(product => {
+			return { site: product.site.domain, url: product.url };
+		});
+
+		return knex.insert(records).onConflict('url').ignore().into('products');
 	}
 }

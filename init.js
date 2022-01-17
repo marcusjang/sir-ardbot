@@ -14,9 +14,9 @@ const config = require('./config.js');
 const { crawl } = require('./crawl.js');
 const discord = require('./discord.js');
 const database = require('./database.js');
-const knex = database.knex;
 
 const delay = require('./utils/delay.js');
+const print = require('./utils/print.js');
 
 const queue = {
 	array: [],
@@ -55,6 +55,31 @@ const work = () => {
 	return true;
 };
 
+const getChannels = () => {
+	// see through ./sites/* and get files
+	log(`Let's get through what sites we have`);
+	return fs.readdir(path.join(__dirname, './sites/'))
+		// filtering happens here for filenames starting with '-' or not ending with .js
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+		.then(files => {
+			// if no files force demo mode (at least in here)
+			if (files.length === 0) config.debug.demo = true;
+
+			if (config.debug.demo) {
+				log(`Sir ardbot is in demo mode`);
+				files = [ '_example.js' ];
+			}
+
+			if (config.debug.demo || config.discord.disabled) {
+				return files.map(file => {
+					return { site: file.replace('.js', '') };
+				});
+			} else {
+				return discord.initChannels(files);
+			}
+		})
+}
+
 module.exports = () => {
 	log(`Sir Ardbot is ready! Initialising...`);
 
@@ -70,68 +95,38 @@ module.exports = () => {
 					discord.client.commands.set(command.data.name, command);
 				}
 			}
-		})
-		.then(() => Promise.all([
-				database.init(), // initialise the database, returns nothing useful
-				puppeteer.launch(config.puppeteer.options)
-			]).then(init => {
-				const browser = init[1];
-				// see through ./sites/* and get files
-				log(`Let's get through what sites we have`);
-				return fs.readdir(path.join(__dirname, './sites/'))
-					// filtering happens here for filenames starting with '-' or not ending with .js
-					.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-					.then(files => {
-						if (files.length === 0) {
-							log(`Sir ardbot is in demo mode`);
-							files.push('_example.js');
-						}
+		});
 
-						if (config.discord.disabled || files[0] == '_example.js') {
-							return files.map(file => {
-								return { site: file.replace('.js', ''), channel: null };
-							});
-						} else {
-							return discord.initChannels(files);
-						}
-					})
-					.then(channelArray => {
-						queue.unitDelay = Math.floor(config.crawler.interval / channelArray.length);
-						log(`unit delay is ${queue.unitDelay}ms per site`);
+	Promise.all([
+		database.init(),
+		puppeteer.launch(config.puppeteer.options),
+		getChannels()
+	]).then(init => {
+		// database.init() returns knex but we won't be using it here
+		const [ , browser, channelArray ] = init;
 
-						queue.array = channelArray.map(channelObj => {
-							const { site, channel } = channelObj;
-							return () => crawl(browser, site).then(products => {
-								if (!products) return Promise.reject(null);
+		queue.unitDelay = Math.floor(config.crawler.interval / channelArray.length);
+		log(`unit delay is ${queue.unitDelay}ms per site`);
 
-								if (site !== '_example' && (!config.debug.dev || config.debug.dryrun)) {
-									// store new products on the database (for some time at least)
-									// needs to be expunged routinely
-									const entries = products.map(product => {
-										return {
-											site: product.site.domain,
-											url: product.url
-										}
-									});
+		// add jobs to queue.array
+		queue.array = channelArray.map(channelObj => { 
+			const { site, channel } = channelObj;
+			return () => { // job needs to be wrapped in a function
+				return crawl(browser, site).then(products => {
+					if (config.debug.demo || config.discord.disabled) {
+						products.forEach(product => print(product));
+						return false;
+					} else { 
+						return discord.sendProducts(channel, products);
+					}
+				}).catch(err => (err) ? error(err) : null);
+			};
+		});
 
-									return knex.insert(entries).onConflict('url').ignore().into('products')
-										.then(() => {
-											log(`${site}: Successfully inserted ${entries.length} entries into the DB`);
-											log(`${site}: Returning to Discord interface with new products...`);
-											return products;
-										})
-								} else {
-											log(`${site}: Returning to Discord interface without inserting...`);
-											return products;
-								}
-							})
-							.then(products => discord.sendProducts(channel, products))
-							.catch(err => {
-								if (err !== null) error(err);
-							});
-						});
-						queue.arrayCopy = queue.array.slice(); // just to copy the array
-						work();
-					});
-			}));
+		// then copy queue.array into queue.arrayCopy for later use
+		queue.arrayCopy = queue.array.slice(); 
+
+		// get to work()
+		return work();
+	});
 }
