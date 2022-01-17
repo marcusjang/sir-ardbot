@@ -67,4 +67,14 @@ module.exports = class Product {
 
 		return price;
 	}
+
+	get string() {
+		return `\n` +
+			`   \x1b[2mfrom ${this.site.domain}\x1b[0m\n` +
+			`  \x1b[1m\x1b[32m${this.name}\x1b[0m\n` +
+			`  \x1b[1m\x1b[4m${this.url}\x1b[0m\n` +
+			`    \x1b[1mPRICE \x1b[0m${this.price} ${this.site.meta.currency}\x1b[0m` +
+			((this.abv)  ? `      \x1b[1mABV \x1b[0m${this.abv} %\x1b[0m`   : '') +
+			((this.size) ? `      \x1b[1mSIZE \x1b[0m${this.size} ml\x1b[0m` : '');
+	}
 }

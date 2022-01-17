@@ -16,7 +16,6 @@ const discord = require('./discord.js');
 const database = require('./database.js');
 
 const delay = require('./utils/delay.js');
-const print = require('./utils/print.js');
 
 const queue = {
 	array: [],
@@ -114,7 +113,7 @@ module.exports = () => {
 			return () => { // job needs to be wrapped in a function
 				return crawl(browser, site).then(products => {
 					if (config.debug.demo || config.discord.disabled) {
-						products.forEach(product => print(product));
+						products.forEach(product => console.log(product.string));
 						return false;
 					} else { 
 						return discord.sendProducts(channel, products);
