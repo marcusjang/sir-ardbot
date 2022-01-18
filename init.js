@@ -24,17 +24,16 @@ module.exports = () => {
 	Promise.all([ getModules('sites'), getModules('commands') ])
 		.then(modules => {
 			const [ sites, commands ] = modules;
-			const initChannels = () => new Promise((resolve, reject) => {
-				if (sites.length === 0) config.debug.demo = true;
-
-				if (config.debug.demo) {
-					log(`Sir ardbot is in demo mode`);
-					sites = [ '_example.js' ];
+			const initModules = () => new Promise((resolve, reject) => {
+				if (sites.length === 0) {
+					config.debug.demo = true;
+					sites.push('_example.js');
 				}
 
 				log(`Found ${sites.length} site(s)`);
 
-				if (config.debug.demo || config.discord.disabled) {
+				if (config.debug.demo) {
+					log(`Sir ardbot is in demo mode`);
 					const channels = sites.map(file => {
 						return { site: file.replace('.js', '') };
 					});
@@ -45,7 +44,7 @@ module.exports = () => {
 				}
 			});
 
-			if (!config.discord.disabled || true) {
+			if (!config.discord.disabled) {
 				discord.client.commands = new Map();
 				log(`Found ${commands.length} command(s), setting...`);
 				for (const command of commands) {
@@ -56,7 +55,7 @@ module.exports = () => {
 
 			return Promise.all([
 				puppeteer.launch(config.puppeteer.options),
-				initChannels(),
+				initModules(),
 				database.init()
 			]);
 		})
