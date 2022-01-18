@@ -31,7 +31,7 @@ const config = {
 		guildID: env.DISCORD_GUILD_ID,
 		roleIDs: (env.DISCORD_ROLE_ID || '').split(','),
 		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED) ||
-			isTrue(env.DEMO) || isTrue(env.DRYRUN)) || isTrue(env.DEV)
+			isTrue(env.DEMO) || isTrue(env.DRYRUN))
 	},
 	unipass: {
 		token: env.UNIPASS_TOKEN,
