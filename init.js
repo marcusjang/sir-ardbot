@@ -4,10 +4,6 @@
  *  
  */
 
-const { log, error } = require('./utils/debug.js')('sir-ardbot:main');
-
-const path = require('path');
-const fs = require('fs/promises');
 const puppeteer = require('puppeteer');
 
 const config = require('./config.js');
@@ -15,111 +11,75 @@ const { crawl } = require('./crawl.js');
 const discord = require('./discord.js');
 const database = require('./database.js');
 
+const { log, error } = require('./utils/debug.js')('sir-ardbot:main');
 const delay = require('./utils/delay.js');
+const getModules = require('./utils/getModules.js');
 
-const queue = {
-	array: [],
-	arrayCopy: [],
-	working: false,
-	unitDelay: 2500 // just a placeholder default value that basically does nothing
-};
-
-const work = () => {
-	if (queue.working) return false;
-
-	const job = queue.array.shift();
-	if (!job) return false;
-
-	// do this until the end of time (or usually SIGINT)
-	if (queue.array.length == 0) queue.array = queue.arrayCopy.slice(); 
-
-	queue.working = true;
-
-	// some .race() and .all() to do job not too fast but not too slow
-	Promise.race([
-			Promise.all([ job(), delay(queue.unitDelay) ]),
-			delay(queue.unitDelay + 3000) // basically timeout
-		])
-		// we do not care if crawl() properly resolves or not so just use .finally()
-		.finally(() => { 
-			queue.working = false;
-			work();
-		});
-	return true;
-};
-
-const getChannels = () => {
-	// see through ./sites/* and get files
-	log(`Let's get through what sites we have`);
-	return fs.readdir(path.join(__dirname, './sites/'))
-		// filtering happens here for filenames starting with '-' or not ending with .js
-		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => {
-			// if no files force demo mode (at least in here)
-			if (files.length === 0) config.debug.demo = true;
-
-			if (config.debug.demo) {
-				log(`Sir ardbot is in demo mode`);
-				files = [ '_example.js' ];
-			}
-
-			if (config.debug.demo || config.discord.disabled) {
-				return files.map(file => {
-					return { site: file.replace('.js', '') };
-				});
-			} else {
-				return discord.initChannels(files);
-			}
-		})
-}
+const Queue = require('./classes/queue.js');
+const queue = new Queue(true);
 
 module.exports = () => {
 	log(`Sir Ardbot is ready! Initialising...`);
 
-	// dynamically reads commands
-	discord.client.commands = new Map();
-	fs.readdir(path.join(__dirname, './commands/'))
-		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(files => {
-			if (!config.discord.disabled) {
-				log(`Found ${files.length} command(s), setting...`);
-				for (const file of files) {
-					const command = require(`./commands/${file}`);
-					discord.client.commands.set(command.data.name, command);
+	Promise.all([ getModules('sites'), getModules('commands') ])
+		.then(modules => {
+			const [ sites, commands ] = modules;
+			const initChannels = () => new Promise((resolve, reject) => {
+				if (sites.length === 0) config.debug.demo = true;
+
+				if (config.debug.demo) {
+					log(`Sir ardbot is in demo mode`);
+					sites = [ '_example.js' ];
+				}
+
+				log(`Found ${sites.length} site(s)`);
+
+				if (config.debug.demo || config.discord.disabled) {
+					const channels = sites.map(file => {
+						return { site: file.replace('.js', '') };
+					});
+					resolve(channels);
+				} else {
+					discord.initChannels(sites)
+						.then(resolve).catch(reject);
+				}
+			});
+
+			if (!config.discord.disabled || true) {
+				discord.client.commands = new Map();
+				log(`Found ${commands.length} command(s), setting...`);
+				for (const command of commands) {
+					const commandModule = require(`./commands/${command}`);
+					discord.client.commands.set(commandModule.data.name, commandModule);
 				}
 			}
+
+			return Promise.all([
+				puppeteer.launch(config.puppeteer.options),
+				initChannels(),
+				database.init()
+			]);
+		})
+		.then(init => {
+			// database.init() returns knex but we won't be using it here anyway
+			const [ browser, channels ] = init;
+
+			const unitDelay = Math.floor(config.crawler.interval / channels.length);
+			log(`Unit delay is ${unitDelay}ms per site`);
+
+			channels.forEach(channel => { 
+				queue.add(() => crawl(browser, channel.site))
+					.then(products => {
+						if (config.debug.demo || config.discord.disabled) {
+							products.forEach(product => console.log(product.string));
+							return false;
+						} else { 
+							return discord.sendProducts(channel.channel, products);
+						}
+					})
+					.catch(err => (err) ? error(err) : null);
+			});
+
+			return true;
 		});
-
-	Promise.all([
-		database.init(),
-		puppeteer.launch(config.puppeteer.options),
-		getChannels()
-	]).then(init => {
-		// database.init() returns knex but we won't be using it here
-		const [ , browser, channelArray ] = init;
-
-		queue.unitDelay = Math.floor(config.crawler.interval / channelArray.length);
-		log(`unit delay is ${queue.unitDelay}ms per site`);
-
-		// add jobs to queue.array
-		queue.array = channelArray.map(channelObj => { 
-			const { site, channel } = channelObj;
-			return () => { // job needs to be wrapped in a function
-				return crawl(browser, site).then(products => {
-					if (config.debug.demo || config.discord.disabled) {
-						products.forEach(product => console.log(product.string));
-						return false;
-					} else { 
-						return discord.sendProducts(channel, products);
-					}
-				}).catch(err => (err) ? error(err) : null);
-			};
-		});
-
-		// then copy queue.array into queue.arrayCopy for later use
-		queue.arrayCopy = queue.array.slice(); 
-
-		// get to work()
-		return work();
-	});
 }
