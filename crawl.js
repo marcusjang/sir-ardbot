@@ -70,33 +70,37 @@ const requestHandler = req => {
 };
 
 const browse = (browser, site) => {
-	return browser.newPage().then(page => {
-		return Promise.all([
-			page.setDefaultTimeout(config.puppeteer.timeout),
-			page.setRequestInterception(true),
-			(site.cookies) ?
-				page.setExtraHTTPHeaders({ cookie: site.cookies }) :
-				Promise.resolve()
-		]).then(() => page);
-	})
-	.then(page => {
-		// for debuging purposes
-		if (config.puppeteer.console)
-			page.on('console', relayConsole);
+	const cookies = (site.cookies) ? { cookies: site.cookies } : {};
+	return browser.newPage()
+		.then(page => {
+			return Promise.all([
+				page.setDefaultTimeout(config.puppeteer.timeout),
+				page.setRequestInterception(true),
+				page.setExtraHTTPHeaders(cookies)
+			]).then(() => page);
+		})
+		.then(page => {
+			// for debuging purposes
+			if (config.puppeteer.console)
+				page.on('console', relayConsole);
 
-		// request rejection on selected types
-		page.on('request', requestHandler);
-		
-		return page.goto(site.url, { waitUntil: [ 'load' ] })
-			.catch(err => errorHandler(err, site.domain))
-			.then(() => {
-				return site.getProducts(page)
-					.then(results => results.reverse())
-					.catch(err => errorHandler(err, site.domain))
-					.finally(() => page.close())
-			});
-	});
+			// request rejection on selected types
+			page.on('request', requestHandler);
+			
+			return page.goto(site.url, { waitUntil: [ 'load' ] })
+				.catch(err => errorHandler(err, site.domain))
+				.then(() => {
+					return site.getProducts(page)
+						.then(results => results.reverse())
+						.catch(err => errorHandler(err, site.domain))
+						.finally(() => page.close())
+				});
+		});
 };
+
+const defer = (job) => new Promise((resolve, reject) => {
+	job().then(resolve).catch(reject);
+})
 
 const crawl = (browser, domain) => {
 	const site = require(`./sites/${domain}.js`);
@@ -104,9 +108,13 @@ const crawl = (browser, domain) => {
 
 	const limit = (site.limit) ? site.limit * 4 : 200; // just some random big-ish number
 
-	const jobs = [ browse(browser, site) ];
-	if (config.crawler.dbcheck) jobs.push(getRecords(domain, limit));
-	if (!config.unipass.disabled) jobs.push(getRates());
+	const jobs = [ defer(() => browse(browser, site)) ];
+
+	if (config.crawler.dbcheck)
+		jobs.push(defer(() => getRecords(domain, limit)));
+
+	if (!config.unipass.disabled)
+		jobs.push(defer(() => getRates()));
 
 	return Promise.all(jobs)
 		.then(parcel => {
