@@ -25,14 +25,13 @@ module.exports = class Queue {
 		const job = this.queue.shift();
 		if (!job) return false;
 
-		if (this.repeat) this.queue.push(job);
-
 		this.working = true;
 
 		job.work()
 			.then(job.resolve)
 			.catch(job.reject)
 			.finally(() => { 
+				if (this.repeat) this.queue.push(job);
 				this.working = false;
 				this.start();
 			});

@@ -24,16 +24,18 @@ module.exports = () => {
 	Promise.all([ getModules('sites'), getModules('commands') ])
 		.then(modules => {
 			const [ sites, commands ] = modules;
+
 			const initModules = () => new Promise((resolve, reject) => {
 				if (sites.length === 0) {
+					log(`Sir ardbot is in demo mode`);
 					config.debug.demo = true;
+					config.discord.disabled = true;
 					sites.push('_example.js');
 				}
 
 				log(`Found ${sites.length} site(s)`);
 
-				if (config.debug.demo) {
-					log(`Sir ardbot is in demo mode`);
+				if (config.discord.disabled) {
 					const channels = sites.map(file => {
 						return { site: file.replace('.js', '') };
 					});
@@ -66,19 +68,19 @@ module.exports = () => {
 			const unitDelay = Math.floor(config.crawler.interval / channels.length);
 			log(`Unit delay is ${unitDelay}ms per site`);
 
-			channels.forEach(channel => { 
-				queue.add(() => crawl(browser, channel.site))
-					.then(products => {
-						if (config.debug.demo || config.discord.disabled) {
-							products.forEach(product => console.log(product.string));
-							return false;
-						} else { 
-							return discord.sendProducts(channel.channel, products);
-						}
-					})
-					.catch(err => (err) ? error(err) : null);
-			});
+			channels.forEach(channel => {
+				const job = () => crawl(browser, channel.site)
+					.then(products => (config.discord.disabled) ?
+						products.forEach(product => console.log(product.string)) :
+						discord.sendProducts(channel.channel, products)
+					)
+					.catch(err => (err) ? reject(err) : null);
 
-			return true;
+				queue.add(() => Promise.race([
+					Promise.all([ job(), delay(unitDelay) ]),
+					delay(unitDelay + 3000) // basically timeout
+				]));
+					
+			});
 		});
 }
