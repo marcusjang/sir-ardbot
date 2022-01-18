@@ -48,7 +48,6 @@ module.exports = {
 
 		// go through existing channels cache and store them to sets
 		// these will be used to be check against with the files
-		log(`Then the categories we have`);
 		const categories = new Set();
 		const channels = new Set();
 		for (const [ id, channel ] of guild.channels.cache) {
@@ -56,7 +55,6 @@ module.exports = {
 			if (channel.type == 'GUILD_TEXT') channels.add(channel.name);
 		}
 
-		log(`Found ${files.length} site files`);
 		for (const file of files) {
 			const site = require(`./sites/${file}`);
 
