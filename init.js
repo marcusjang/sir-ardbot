@@ -24,12 +24,6 @@ const queue = {
 	unitDelay: 2500 // just a placeholder default value that basically does nothing
 };
 
-const puppeteerOptions = { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] };
-if (config.puppeteer.path) {
-	puppeteerOptions.product = 'chrome';
-	puppeteerOptions.executablePath = config.puppeteer.path;
-};
-
 const work = () => {
 	if (queue.working) return false;
 
