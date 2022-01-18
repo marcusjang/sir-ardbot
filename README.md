@@ -123,7 +123,7 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
    Configures which [**debug**](https://github.com/debug-js/debug) messages to be printed
    
  * `DEV` = `true|false`  
-   If set to `true`, Sir Ardbot will skip both recording and broadcasting, overriding `DISCORD_DISABLE` to `true`
+   If set to `true`, Sir Ardbot will skip both recording and broadcasting
    
  * `DRYRUN` = `true|false`  
    If set to `true`, Sir Ardbot will skip broadcasting **but** will be recording to the local db. Overrides `DEV` flag.  
