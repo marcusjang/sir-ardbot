@@ -1,0 +1,17 @@
+# .gitignore
+
+# obvious ones for nodejs projects
+node_modules
+.env
+
+# sqlite3 database
+data.db
+
+# sites and commands modules are handled by separate submodules
+sites/*
+commands/*
+
+# but we'll allow examples to get through
+!sites/_example.js
+!sites/README.md
+!commands/_example.js
