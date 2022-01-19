@@ -3,6 +3,7 @@
   "version": "2.0.0-dev",
   "description": "Sir Ardbot is a crawling bot for new listings on various online retailers.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
