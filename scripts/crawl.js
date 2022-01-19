@@ -12,6 +12,9 @@ process.argv.shift(); // crawl.js
 
 process.env.DEBUG = 'sir-ardbot:*';
 
+config.crawler.dbcheck = false;
+config.puppeteer.console = true;
+
 const puppeteer = require('puppeteer');
 const { crawl } = require('../crawl.js');
 
