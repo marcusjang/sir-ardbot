@@ -1,12 +1,18 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
+import config from './config.js';
 import init from './init.js';
-import { client as discordClient, login as discordLogin } from './discord.js';
-discordLogin().then(init);
+import * as discord from './discord.js';
 
-const exitHandler = (code) => {
-	discordClient.destroy();
+new Promise((resolve) => {
+	if (config.discord.disabled) {
+		resolve();
+	} else {
+		discord.login().then(resolve);
+	}
+}).then(init);
+
+function exitHandler(code) {
+	if (discord.client.readyAt !== null)
+		discord.client.destroy();
 	console.log(`${code} was received. So long, partner...`);
 	process.exit(0);
 }
