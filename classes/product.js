@@ -19,7 +19,7 @@ module.exports = class Product {
 	}
 
 	absUrl(urlString) {
-		return (!urlString) ? null : 'https://www.' + this.site + urlString;
+		return (!urlString) ? null : 'https://www.' + this.site.domain + urlString;
 	}
 
 	parseSize(sizeString) {
