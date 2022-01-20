@@ -17,7 +17,7 @@ module.exports = new Site('an.excellent.example', {
 	vatRate: 1.0,
 	limit: 25,
 	url: 'about:blank',
-	cookies: 'anExcellentCookie=anExcellentValue;',
+        cookies: [{ name: 'anExcellentCookie', value: 'anExcellentValue', domain:'an.excellent.example' }],
 	hidden: false,
 	productsSelector: 'html > *',
 	parseProduct: prod => {
@@ -146,11 +146,11 @@ The URL of page to crawl from. Can be a function that takes a page argument and 
 /*
  * 	site.cookies
  *	@default	null
- *	@type		string
+ *	@type		array<object>
  */
- 	cookies: 'anExcellentCookie=anExcellentValue;',
+ 	cookies: [{ name: 'anExcellentCookie', value: 'anExcellentValue', domain:'an.excellent.example' }],
  ```
-Cookies required for the given page in string form. If set, it will override Puppeteer's HTTP request header cookie.
+Cookies required for the given page in object form.
 
 #### [`site.hidden`](#properties)
 ```js

@@ -13,7 +13,7 @@ export default new Site('an.excellent.example', {
 	vatRate: 1.0,
 	limit: 25,
 	url: 'about:blank',
-	cookies: 'anExcellentCookie=anExcellentValue;',
+	cookies: [{ name: 'anExcellentCookie', value: 'anExcellentValue', domain:'an.excellent.example' }],
 	hidden: false,
 	productsSelector: 'html > *',
 	parseProduct: prod => {

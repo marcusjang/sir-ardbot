@@ -1,17 +1,17 @@
-export default {
-	data: {
-		name: 'wb',
-		description: 'Search bottles on whiskybase.com',
-		options: [{
-			name: 'query',
-			type: 3,
-			description: 'Whiskybase.com bottle id',
-			required: true,
-			autocomplete: false
-		}]
-	},
-	execute: async interaction => {
-		if (interaction.commandName == 'wb') {
+export const data = {
+	name: 'wb',
+	description: 'Search bottles on whiskybase.com',
+	options: [{
+		name: 'query',
+		type: 3,
+		description: 'Whiskybase.com bottle id',
+		required: true,
+		autocomplete: false
+	}]
+}
+
+export function execute(interaction) {
+	if (interaction.commandName == 'wb') {
 		const query = interaction.options.getString('query');
 
 		if (query.match(/^\d+$/)) {
