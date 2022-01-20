@@ -1,6 +1,8 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
 import { debug } from './utils.js';
+import { getRecords, putRecords } from './database.js';
+import { getRates } from './currency.js';
 
 const log = debug('sir-ardbot:crawler');
 const error = debug('sir-ardbot:crawler', 'error');
@@ -60,12 +62,42 @@ export default async function(browser, site) {
 		page.on('request', requestHandler);
 
 		await page.goto(site.url, { waitUntil: [ 'load' ] });
-		const results = (await site.getProducts(page)).reverse();
+		let products = (await site.getProducts(page)).reverse();
+		log('%s: Successfully crawled %d products', site.domain, products.length);
 
-		console.log(results);
-		
 		page.close();
-		return results;
+
+		if (config.crawler.dbcheck) {
+			log('%s: Reading through the database to see if any has been seen...', site.domain);
+			const records = await getRecords(site);
+			const set = new Set(records.map(el => el.url));
+			products = products.filter(prod => !set.has(prod.url));
+		}
+
+		if (!config.unipass.disabled) {
+			const rates = await getRates();
+			for (const product of products) {
+				const currency = product.site.meta.currency;
+				if (currency !== 'USD' && rates[currency]) {
+					const priceUSD = product.price * (rates[currency] / rates['USD']);
+					product.priceUSD = Math.round(priceUSD * 100) / 100; // two decimal places
+				}
+			}
+		}
+
+		if (products.length === 0) {
+			log('%s: No new product has been found', site.domain);
+			return false;
+		}
+
+		log('%s: Successfully crawled %d new products!', site.domain, products.length);
+
+		if (config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
+			await putRecords(products);
+			log('%s: ...and inserted them into the database as well!');
+		}
+
+		return products;
 
 	} catch(err) {
 		if (err.name === 'TimeoutError') {
