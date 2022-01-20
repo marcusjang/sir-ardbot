@@ -8,10 +8,6 @@ const { env } = process;
 const isTrue = string => (string === 'true');
 const isFalse = string => (string === 'false');
 
-// env.DEBUG is only used by debug module
-// but we'll give it a default vaulue
-if (!env.DEBUG) env.DEBUG = 'sir-ardbot*';
-
 const config = {
 	crawler: {
 		interval: (env.CRAWLER_INTERVAL || 90) * 1000,
