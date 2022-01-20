@@ -1,7 +1,7 @@
-import debug from 'debug';
+import { default as debugModule } from 'debug';
 import { inspect } from 'util';
 
-export default function (name, type = 'log') {
+export function debug(name, type = 'log') {
 	const types = [ 'debug', 'error', 'info', 'log', 'warn' ];
 	if (!types.find(value => type === value))
 		return console.log;
@@ -9,12 +9,16 @@ export default function (name, type = 'log') {
 	if (type !== 'log')
 		name = name + '-' + type;
 
-	const log = debug(name);
+	const log = debugModule(name);
 	log.log = console[type].bind(console);
 
 	return log;
 }
 
-export function print (object) {
+export function print(object) {
 	return console.log(inspect(object, { showHidden: false, depth: null, colors: true }));
+}
+
+export function delay(ms) {
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
