@@ -6,7 +6,7 @@
 
 import config from './config.js';
 import knex from 'knex';
-import debug, { print } from './utils/debug.js';
+import { debug } from './utils.js';
 import PathURL from './classes/pathurl.js';
 
 const log = debug('sir-ardbot:database');
