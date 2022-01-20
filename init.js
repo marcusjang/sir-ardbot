@@ -57,19 +57,18 @@ export default function() {
 		})
 
 		// launch puppeteer and initialise the database
-		.then(sites => {
-			return Promise.all([ puppeteer.launch(config.puppeteer.options), database.init() ])
-				.then(init => {
-					const [ browser ] = init;
-					const unitDelay = Math.floor(config.crawler.interval / sites.length);
-					log('Unit delay is %d ms per site', unitDelay);
+		.then(async sites => {
+			await database.init();
 
-					for (const site of sites) {
-						queue.add(paceJob(crawl(browser, site), unitDelay));
-					}
+			const browser = await puppeteer.launch(config.puppeteer.options);
+			const unitDelay = Math.floor(config.crawler.interval / sites.length);
+			log('Unit delay is %d ms per site', unitDelay);
 
-					return true;
-				});
+			for (const site of sites) {
+				queue.add(paceJob(crawl(browser, site), unitDelay));
+			}
+
+			return true;
 		});
 
 }
