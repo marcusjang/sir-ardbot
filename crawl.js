@@ -75,7 +75,6 @@ export default async function(browser, site) {
 		page.close();
 
 		if (config.crawler.dbcheck) {
-			log('%s: Reading through the database to see if any has been seen...', site.domain);
 			const records = await getRecords(site);
 			const set = new Set(records.map(el => el.url));
 			products = products.filter(prod => !set.has(prod.url));
@@ -93,7 +92,7 @@ export default async function(browser, site) {
 		}
 
 		if (products.length === 0) {
-			log('%s: No new product has been found', site.domain);
+			log('%s: ... but none of them were new.', site.domain);
 			return false;
 		}
 
