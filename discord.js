@@ -1,4 +1,10 @@
+import { readdir } from 'fs/promises';
 import { Client, Intents } from 'discord.js';
+import config from './config.js';
+import debug, { print } from './utils/debug.js';
+import PathURL from './classes/pathurl.js';
+
+const log = debug('sir-ardbot:discord');
 
 export const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -7,6 +13,7 @@ export function login(token) {
 		if (typeof token !== 'string' || token.length === 0)
 			token = process.env.DISCORD_TOKEN;
 
+		log('Logging into Discord with token %s', token.replace(/^(.{6}).*(.{4})$/, '$1...$2'));
 		client.login(token);
 		
 		client.on('interactionCreate', (interaction) => {
@@ -25,6 +32,84 @@ export function login(token) {
 				})
 		});
 
-		client.on('ready', resolve);
+		client.on('ready', () => {
+			log('Logged in on Discord as %s(<@%s>)', client.user.username, client.user.id);
+			client.commands = new Map(); // prep for command setting
+			resolve();
+		});
+	})
+	.then(() => {
+		return readdir(new PathURL('commands').path)
+			.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+			.then(async commands => {
+				if (commands.length > 0) {
+					log('Found %d command module(s), setting...', commands.length);
+
+					for (const file of commands) {
+						const command = await import(new PathURL(`commands/${file}`).href);
+						client.commands.set(command.data.name, command);
+					}
+				}
+
+				return;
+			});
 	});
+}
+
+export async function initChannels(sites) {
+	const guild = client.guilds.cache.get(config.discord.guildID);
+	const channels = guild.channels.cache;
+
+	log('Initialising Discord channels...');
+
+	for (const site of sites) {
+		const categoryName = site.meta.category.toUpperCase();
+		const category = channels.find(channel => channel.type === 'GUILD_CATEGORY' && channel.name === categoryName);
+
+		if (!category) {
+			log('Category "%s" does not exist yet, creating...', categoryName);
+			const category = await guild.channels.create(categoryName, { type: 'GUILD_CATEGORY' });
+			log('Category "%s" was successfully created', categoryName);
+		}
+
+		const channelName = site.meta.name
+			.toLowerCase()				// first to lowercase (stylistic choices)
+			.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
+			.replace(/\s/g, '-')		// then replace space into dash
+			.replace(/-+/g, '-');		// then remove duplicate dashes
+
+		site.channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
+
+		if (!site.channel) {
+			log('Channel #%s does not exist yet, creating...', channelName);
+			const channelObj = {
+				type: 'GUILD_TEXT',
+				parent: category.id,
+				topic: site.url,
+				permissionOverwrites: [
+					{ id: guild.roles.everyone.id, allow: [ ], deny: [ 'SEND_MESSAGES' ] },
+					{ id: client.user.id, allow: [ 'SEND_MESSAGES' ] }
+				]
+			}
+
+			if (site.hidden && config.discord.roleIDs[0] != '') {
+				const permissions = channelObj.permissionOverwrites;
+				permissions[0].deny.push('VIEW_CHANNEL');
+				for (const roleID of config.discord.roleIDs) {
+					if (roleID && guild.roles.cache.get(roleID))
+						permissions.push({ id: roleID, allow: [ 'VIEW_CHANNEL' ] });
+				}
+			} else {
+				channelObj.permissionOverwrites[0].allow.push('VIEW_CHANNEL');
+			}
+
+			const createdChannel = await guild.channels.create(channelName, channelObj);
+			log('Channel #%s was successfully created', channelName);
+
+			site.channel = createdChannel;
+		}
+	};
+
+	log('Initialised Discord channels for %d sites!', sites.length);
+	return sites;
 }
