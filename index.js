@@ -1,6 +1,9 @@
 import config from './config.js';
 import init from './init.js';
 import * as discord from './discord.js';
+import debug from './utils/debug.js';
+
+const log = debug('sir-ardbot:main');
 
 new Promise((resolve) => {
 	if (config.discord.disabled) {
@@ -13,7 +16,7 @@ new Promise((resolve) => {
 function exitHandler(code) {
 	if (discord.client.readyAt !== null)
 		discord.client.destroy();
-	console.log(`${code} was received. So long, partner...`);
+	log(`${code} was received. So long, partner...`);
 	process.exit(0);
 }
 
