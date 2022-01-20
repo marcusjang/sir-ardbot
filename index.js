@@ -13,7 +13,7 @@ function exitHandler(code) {
 	process.exit(0);
 }
 
-info('Sir Ardbot is initialising...')
+info('Sir Ardbot is initialising...');
 init();
 
 process.on('SIGINT', exitHandler);

@@ -63,9 +63,10 @@ export function init(tables = tablesSchema) {
 	return checkTables(tables).then(createTables);
 }
 
-export function getRecords(site) {
-	return db.select('url', 'created_at').where('site', site.domian)
-			.from('products').orderBy('created_at', 'desc').limit(site.limit);
+export function getRecords(site, limit) {
+	if (!limit) limit = Math.max(site.limit * 4, 200);
+	return db.select('url', 'created_at').where('site', site.domain)
+			.from('products').orderBy('created_at', 'desc').limit(limit);
 }
 
 export function putRecords(products) {
