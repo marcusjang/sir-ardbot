@@ -17,13 +17,14 @@ function multiImport(paths) {
 	).then(mod => mod.map(mod => mod.default));
 }
 
-function paceJob(callback, delay, span = 3000) {
+function paceJob(callback, ms, span = 3000) {
+	console.log(callback, ms, span)
 	if (typeof callback !== 'function')
 		return false;
 
 	return Promise.race([
-		Promise.all([ job(), delay(delay) ]),
-		delay(delay + span) // basically timeout
+		Promise.all([ callback(), delay(ms) ]),
+		delay(ms + span) // basically timeout
 	]);
 }
 
@@ -65,7 +66,11 @@ export default function() {
 			log('Unit delay is %d ms per site', unitDelay);
 
 			for (const site of sites) {
-				queue.add(paceJob(crawl(browser, site), unitDelay));
+				const job = () => Promise.race([
+					Promise.all([ crawl(browser, site), delay(unitDelay) ]),
+					delay(unitDelay + 3000) // basically timeout
+				]);
+				queue.add(job);
 			}
 
 			return true;
