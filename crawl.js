@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
-import { debug } from './utils.js';
+import { debug, print } from './utils.js';
 import { getRecords, putRecords } from './database.js';
 import { getRates } from './currency.js';
 
@@ -20,7 +20,7 @@ const emptyImage = Buffer.from([
 	0x54,0x01,0x00,0x3b
 ]);
 
-function relayConsole(message) {
+function relayConsole(messages) {
 	messages.args().forEach((message, index) => {
 		console.log(`${index} : ${message}`);
 	});
@@ -49,11 +49,15 @@ function requestHandler(request) {
 export default async function(browser, site) {
 	try {
 		const page = await browser.newPage();
-		const headers = (site.cookies) ? { cookies: site.cookies } : {};
 
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
-		await page.setExtraHTTPHeaders(headers);
+
+		if (site.cookies) {
+			for (const cookie of site.cookies) {
+				await page.setCookie(cookie);
+			}
+		}
 
 		// for debuging purposes
 		if (config.puppeteer.console)
@@ -61,7 +65,10 @@ export default async function(browser, site) {
 
 		page.on('request', requestHandler);
 
+		log('%s: Start crawling %s...', site.domain, site.domain);
+
 		await page.goto(site.url, { waitUntil: [ 'load' ] });
+
 		let products = (await site.getProducts(page)).reverse();
 		log('%s: Successfully crawled %d products', site.domain, products.length);
 
@@ -92,9 +99,61 @@ export default async function(browser, site) {
 
 		log('%s: Successfully crawled %d new products!', site.domain, products.length);
 
-		if (config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
+		if (!config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
 			await putRecords(products);
-			log('%s: ...and inserted them into the database as well!');
+			log('%s: ...and inserted them into the database as well!', site.domain);
+		}
+
+		if (config.discord.disabled) {
+			products.forEach((product, index) => {
+				console.log(product.string);
+				if (index === products.length-1)
+					console.log('\n');
+			});
+		} else {
+			const embedsArray = [];
+			
+			products.forEach((product, index) => {
+				const embed = {
+					title: product.name,
+					url: product.url,
+					thumbnail: { url: product.img },
+					fields: [{
+						name: 'Price (excl. VAT)',
+						value: `${product.price} ${product.site.meta.currency}`,
+						inline: true
+					}],
+					timestamp: new Date()
+				};
+
+				if (product.priceUSD) {
+					embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD} USD)`;
+				}
+
+				if (product.size || product.abv) {
+					embed.fields.push({
+						name: ((product.size) ? 'Size' : '') +
+								((product.size && product.abv) ? ' / ' : '') +
+								((product.abv) ? 'ABV' : ''),
+						value: ((product.size) ? `${product.size}ml` : '') +
+								((product.size && product.abv) ? ' / ' : '') +
+								((product.abv) ? `${product.abv}%` : ''),
+						inline: true
+					});
+				}
+
+				if (index == 0) embed.color = 0xEDBC11;
+
+				// 10 is Discord embed length limit apparently
+				// well, at least coording to the link below, so we chop it up
+				// https://birdie0.github.io/discord-webhooks-guide/other/field_limits.html
+				if (index % 10 == 0) embedsArray.push([]);
+				embedsArray[Math.floor(index / 10)].push(embed);
+			});
+
+			for (const embeds of embedsArray) {
+				await channel.send({ embeds: embeds });
+			}
 		}
 
 		return products;
