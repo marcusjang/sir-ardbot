@@ -169,7 +169,7 @@ export class Queue {
 
 export class PathURL extends URL {
 	constructor(path) {
-		super(join('..', path), import.meta.url);
+		super(join('./', path), import.meta.url);
 	}
 
 	get path() {
