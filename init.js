@@ -4,9 +4,8 @@ import config from './config.js';
 import * as discord from './discord.js';
 import * as database from './database.js';
 import crawl from './crawl.js';
-import { debug, print, delay } from './utils.js';
-import PathURL from './classes/pathurl.js';
-import Queue from './classes/queue.js'
+import { debug, delay } from './utils.js';
+import { PathURL, Queue } from './classes.js'
 
 const log = debug('sir-ardbot:init');
 const queue = new Queue(true);
