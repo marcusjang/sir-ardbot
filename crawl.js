@@ -151,7 +151,7 @@ export default async function(browser, site) {
 			});
 
 			for (const embeds of embedsArray) {
-				await channel.send({ embeds: embeds });
+				await site.channel.send({ embeds: embeds });
 			}
 		}
 
