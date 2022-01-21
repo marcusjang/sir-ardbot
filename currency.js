@@ -46,10 +46,14 @@ function getAPIURL(date = new Date()) {
 		   `?crkyCn=${config.unipass.token}&imexTp=2&qryYymmDd=${toYyMMdd(date)}`;
 }
 
+export function getFutureDay(date = new Date(), offset = 7) {
+	return addDays(date.setDate(date.getDate() - date.getDay()), offset);
+}
+
 export async function getRates(date = new Date()) {
 	const today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	const nextSunday = addDays(today.setDate(today.getDate() - today.getDay()), 7);
-	const future = addDays(today.setDate(today.getDate() - today.getDay()), 3);
+	const nextSunday = getFutureDay(today, 7);
+	const future = getFutureDay(today, 3);
 
 	try {
 		const records = await db.where('expires', nextSunday.valueOf()).from('rates').limit(1);
