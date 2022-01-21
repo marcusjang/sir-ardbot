@@ -1,0 +1,8 @@
+[submodule "sites"]
+	path = sites
+	url = git@github.com:marcusjang/sir-ardbot-sites.git
+	branch = es6
+[submodule "commands"]
+	path = commands
+	url = git@github.com:marcusjang/sir-ardbot-commands.git
+	branch = es6
