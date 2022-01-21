@@ -3,7 +3,7 @@
  *  
  */
  
-import Site from '../classes/site.js';
+import { Site } from '../classes.js';
 
 export default new Site('an.excellent.example', {
 	name: 'An Excellent Site',
