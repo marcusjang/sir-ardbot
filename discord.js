@@ -2,7 +2,7 @@ import { readdir } from 'fs/promises';
 import { Client, Intents } from 'discord.js';
 import config from './config.js';
 import { debug } from './utils.js';
-import { PathURL } from './classes.js'
+import { PathURL } from './classes.js';
 
 const log = debug('sir-ardbot:discord');
 
