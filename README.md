@@ -33,8 +33,17 @@ node index.js
 
 #### Example output in Demo mode, every 90 seconds...
 ```
-  Kilmaor 2006/2016 10 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-kilmaor-2006-2016-10-years-old
-  Bennagar 2002/2015 13 years old 2022-01-13T21:05:28.422Z https://an.excellent.example/an-excellent-bennagar-2002-2015-13-years-old
+
+   from an.excellent.example
+  Kilnagar 1985/2016 31 years old
+  https://an.excellent.example/an-excellent-kilnagar-1985-2016-31-years-old
+    PRICE 199.98 EUR      ABV 45.7 %      SIZE 700 ml
+
+   from an.excellent.example
+  Benmaor 1981/2016 35 years old
+  https://an.excellent.example/an-excellent-benmaor-1981-2016-35-years-old
+    PRICE 337.98 EUR      ABV 48.9 %      SIZE 700 ml
+
     ...
 ```
 By default, the bot will crawl `about:blank` on [**puppeteer**](https://github.com/puppeteer/puppeteer/) then spit out some *randomly generated products* onto the console.
