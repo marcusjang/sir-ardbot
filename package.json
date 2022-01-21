@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
     "api": "node ./scripts/api.js",
     "cmd": "node ./scripts/cmd.js",
     "crawl": "node ./scripts/crawl.js"
