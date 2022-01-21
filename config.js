@@ -1,5 +1,6 @@
+import { PathURL } from './classes.js';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: new PathURL('.env').path });
 
 const { env } = process;
 
