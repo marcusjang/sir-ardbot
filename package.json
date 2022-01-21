@@ -1,14 +1,18 @@
 {
   "name": "sir-ardbot",
-  "version": "2.0.0-dev",
+  "version": "2.0.0",
   "description": "Sir Ardbot is a crawling bot for new listings on various online retailers.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js"
+    "api": "node ./scripts/api.js",
+    "cmd": "node ./scripts/cmd.js",
+    "crawl": "node ./scripts/crawl.js"
   },
   "author": "Marcus Jang <makerpopo@gmail.com>",
   "license": "ISC",
+  "repository": "github:marcusjang/sir-ardbot",
   "dependencies": {
     "acorn": "^8.7.0",
     "debug": "^4.3.3",
