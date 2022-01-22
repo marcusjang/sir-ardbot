@@ -1,8 +1,6 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
-import { debug, print } from './utils.js';
-import { getRecords, putRecords } from './database.js';
-import { getRates } from './currency.js';
+import { debug } from './utils.js';
 
 const log = debug('sir-ardbot:crawler');
 const error = debug('sir-ardbot:crawler', 'error');
@@ -64,107 +62,24 @@ export default async function(browser, site) {
 
 		page.on('request', requestHandler);
 
-		log('%s: Start crawling %s...', site.domain, site.domain);
+		log('%s: Start crawling...', site.domain);
 
 		await page.goto(site.url, { waitUntil: [ 'load' ] });
+		const products = await site.getProducts(page);
 
-		let products = (await site.getProducts(page)).reverse();
-		log('%s: Successfully crawled %d products', site.domain, products.length);
-
-		if (config.crawler.dbcheck) {
-			const records = await getRecords(site);
-			const set = new Set(records.map(el => el.url));
-			products = products.filter(prod => !set.has(prod.url));
-		}
-
-		if (!config.unipass.disabled) {
-			const rates = await getRates();
-			for (const product of products) {
-				const currency = product.site.meta.currency;
-				if (currency !== 'USD' && rates[currency]) {
-					const priceUSD = product.price * (rates[currency] / rates['USD']);
-					product.priceUSD = Math.round(priceUSD * 100) / 100; // two decimal places
-				}
-			}
-		}
-
-		if (products.length === 0) {
-			log('%s: ... but none of them were new.', site.domain);
-			return false;
-		}
-
-		log('%s: Successfully crawled %d new products!', site.domain, products.length);
-
-		if (!config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
-			await putRecords(products);
-			log('%s: ...and inserted them into the database as well!', site.domain);
-		}
-
-		if (config.discord.disabled) {
-			products.forEach((product, index) => {
-				console.log(product.string);
-				if (index === products.length-1)
-					console.log('\n');
-			});
-		} else {
-			const embedsArray = [];
-			
-			products.forEach((product, index) => {
-				const embed = {
-					title: product.name,
-					url: product.url,
-					thumbnail: { url: product.img },
-					fields: [{
-						name: 'Price (excl. VAT)',
-						value: `${product.price} ${product.site.meta.currency}`,
-						inline: true
-					}],
-					timestamp: new Date()
-				};
-
-				if (product.priceUSD) {
-					embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD} USD)`;
-				}
-
-				if (product.size || product.abv) {
-					embed.fields.push({
-						name: ((product.size) ? 'Size' : '') +
-								((product.size && product.abv) ? ' / ' : '') +
-								((product.abv) ? 'ABV' : ''),
-						value: ((product.size) ? `${product.size}ml` : '') +
-								((product.size && product.abv) ? ' / ' : '') +
-								((product.abv) ? `${product.abv}%` : ''),
-						inline: true
-					});
-				}
-
-				if (index == 0) embed.color = 0xEDBC11;
-
-				// 10 is Discord embed length limit apparently
-				// well, at least coording to the link below, so we chop it up
-				// https://birdie0.github.io/discord-webhooks-guide/other/field_limits.html
-				if (index % 10 == 0) embedsArray.push([]);
-				embedsArray[Math.floor(index / 10)].push(embed);
-			});
-
-			for (const embeds of embedsArray) {
-				await site.channel.send({ embeds: embeds });
-			}
-		}
+		log('%s: Crawling done! Returning with products...', site.domain);
 
 		return products;
 
 	} catch(err) {
 		if (err.name === 'TimeoutError') {
 			error("%s: We somehow timed out?! Maybe it's nothing...", site.domain);
-		} else if (err.code === 'SQLITE_CONSTRAINT') {
-			error("%s: I'm sure it's nothing, but there was an (allowed) database conflic:", site.domain);
-			console.error(err);
 		} else {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
 
+		return false; // return false will be handled in processProducts()
 	} finally {
 		page.close();
 	}

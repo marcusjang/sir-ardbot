@@ -1,14 +1,15 @@
 import { readdir } from 'fs/promises';
 import puppeteer from 'puppeteer';
 import config from './config.js';
-import { login, client, initChannels } from './discord.js';
-import { init as dbInit } from './database.js';
+import * as discord from './discord.js';
+import * as database from './database.js';
+import { getRates } from './currency.js';
 import crawl from './crawl.js';
 import { debug, delay } from './utils.js';
 import { PathURL, Queue } from './classes.js'
 
-const log = debug('sir-ardbot:init');
-const error = debug('sir-ardbot:init', 'error');
+const log = debug('sir-ardbot:main');
+const error = debug('sir-ardbot:main', 'error');
 const queue = new Queue(true);
 
 function multiImport(paths) {
@@ -51,11 +52,11 @@ export async function init() {
 		});
 
 	if (!config.discord.disabled) {
-		await login();
-		await initChannels(sites); // initChannels() directly modifies the sites var
+		await discord.login();
+		await discord.initChannels(sites); // initChannels() directly modifies the sites var
 	}
 
-	await dbInit();
+	await database.init();
 
 	const browser = await puppeteer.launch(config.puppeteer.options);
 	log('Initialised puppeteer browser instance...');
@@ -70,11 +71,91 @@ export async function init() {
 
 	for (const site of sites) {
 		const job = () => Promise.race([
-			Promise.all([ crawl(browser, site), delay(unitDelay) ]),
+			Promise.all([ crawl(browser, site).then(processProducts), delay(unitDelay) ]),
 			delay(unitDelay + 3000) // basically timeout
 		]);
 		queue.add(job);
 	}
 
 	return; // returns nothing
+}
+
+async function processProducts(products) {
+	if (!products || products.length === 0) return false;
+
+	const site = products[0].site;
+	products = products.reverse();
+
+	log('%s: Successfully crawled %d products', site.domain, products.length);
+
+	if (config.crawler.dbcheck) {
+		try {
+			const records = await database.getRecords(site);
+			const set = new Set(records.map(el => el.url));
+			products = products.filter(prod => !set.has(prod.url));
+		} catch(err) {
+			error("%s: We had some error while getting rates- to be specific:", site.domain);
+			console.error(err);
+			return false; // halt because no check means discord spam
+		}
+	}
+
+	if (products.length === 0) {
+		log('%s: ... but none of them were new.', site.domain);
+		return false;
+	}
+
+	if (!config.unipass.disabled) {
+		try {
+			const rates = await getRates();
+			for (const product of products) {
+				const currency = product.site.meta.currency;
+				if (currency !== 'USD' && rates[currency]) {
+					const priceUSD = product.price * (rates[currency] / rates['USD']);
+					product.priceUSD = Math.round(priceUSD * 100) / 100; // two decimal places
+				}
+			}
+		} catch(err) {
+			error("%s: We had some error while getting rates- to be specific:", site.domain);
+			console.error(err);
+			// won't halt - just not display priceUSD
+		}
+	}
+
+	log('%s: Successfully crawled %d new products!', site.domain, products.length);
+
+	if (!config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
+		try {
+			await database.putRecords(products);
+			log('%s: ...and inserted them into the database as well!', site.domain);
+		} catch(err) {
+			if (err.code === 'SQLITE_CONSTRAINT') {
+				error("%s: I'm sure it's nothing, but there was an (allowed) database conflic:", site.domain);
+				console.error(err);
+			} else {
+				error("%s: We had some error while inserting- to be specific:", site.domain);
+				console.error(err);
+			}
+
+			return false; // halt so no save = no broadcast
+		}
+	}
+
+	if (!config.discord.disabled) {
+		try {
+			return await discord.sendProducts(products);
+		} catch(err) {
+			error("%s: Something went wrong while trying to send to discord, to be specific:", site.domain);
+			console.error(err);
+			// nothing to halt now
+		}
+	}
+
+	products.forEach((product, index) => {
+		console.log(product.string);
+		if (index === products.length-1)
+			console.log('');
+	});
+
+	return true; // return true just for good lucks
 }
