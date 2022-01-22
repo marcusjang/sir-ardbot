@@ -8,6 +8,7 @@ import { debug, delay } from './utils.js';
 import { PathURL, Queue } from './classes.js'
 
 const log = debug('sir-ardbot:init');
+const error = debug('sir-ardbot:init', 'error');
 const queue = new Queue(true);
 
 function multiImport(paths) {
@@ -27,11 +28,13 @@ function paceJob(callback, ms, span = 3000) {
 	]);
 }
 
-export function init() {
-	return readdir(new PathURL('sites').path)
-		// get site modules then import them
-		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-		.then(sites => {
+export async function init() {
+	const sites = await readdir(new PathURL('sites').path)
+		.then(files => {
+			const sites = files.filter(file => {
+				return (file.charAt(0) != '_' && file.endsWith('.js'));
+			});
+
 			if (sites.length === 0) {
 				config.debug.demo = true;
 				config.discord.disabled = true;
@@ -45,32 +48,33 @@ export function init() {
 			log('Found %d site module(s)...', sites.length);
 
 			return multiImport(sites.map(path => `sites/${path}`));
-		})
-
-		// login on discord if necessary then modularise the site modules
-		.then(sites => {
-			if (config.discord.disabled)
-				return sites;
-
-			return login().then(() => initChannels(sites));
-		})
-
-		// launch puppeteer and initialise the database
-		.then(async sites => {
-			await dbInit();
-
-			const browser = await puppeteer.launch(config.puppeteer.options);
-			const unitDelay = Math.floor(config.crawler.interval / sites.length);
-			log('Unit delay is %d ms per site', unitDelay);
-
-			for (const site of sites) {
-				const job = () => Promise.race([
-					Promise.all([ crawl(browser, site), delay(unitDelay) ]),
-					delay(unitDelay + 3000) // basically timeout
-				]);
-				queue.add(job);
-			}
-
-			return { browser, client };
 		});
+
+	if (!config.discord.disabled) {
+		await login();
+		await initChannels(sites); // initChannels() directly modifies the sites var
+	}
+
+	await dbInit();
+
+	const browser = await puppeteer.launch(config.puppeteer.options);
+	log('Initialised puppeteer browser instance...');
+
+	browser.on('disconnected', () => {
+		error('Connection to puppeteer browser has been servered, crashing down...');
+		destroy();
+	});
+
+	const unitDelay = Math.floor(config.crawler.interval / sites.length);
+	log('Unit delay is %d ms per site', unitDelay);
+
+	for (const site of sites) {
+		const job = () => Promise.race([
+			Promise.all([ crawl(browser, site), delay(unitDelay) ]),
+			delay(unitDelay + 3000) // basically timeout
+		]);
+		queue.add(job);
+	}
+
+	return; // returns nothing
 }
