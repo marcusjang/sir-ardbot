@@ -47,9 +47,8 @@ function requestHandler(request) {
 }
 
 export default async function(browser, site) {
+	const page = await browser.newPage();
 	try {
-		const page = await browser.newPage();
-
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
 
@@ -71,8 +70,6 @@ export default async function(browser, site) {
 
 		let products = (await site.getProducts(page)).reverse();
 		log('%s: Successfully crawled %d products', site.domain, products.length);
-
-		await page.close();
 
 		if (config.crawler.dbcheck) {
 			const records = await getRecords(site);
@@ -167,5 +164,8 @@ export default async function(browser, site) {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
+
+	} finally {
+		page.close();
 	}
 }
