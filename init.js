@@ -1,8 +1,8 @@
 import { readdir } from 'fs/promises';
 import puppeteer from 'puppeteer';
 import config from './config.js';
-import * as discord from './discord.js';
-import * as database from './database.js';
+import { login, client, initChannels } from './discord.js';
+import { init as dbInit } from './database.js';
 import crawl from './crawl.js';
 import { debug, delay } from './utils.js';
 import { PathURL, Queue } from './classes.js'
@@ -27,7 +27,7 @@ function paceJob(callback, ms, span = 3000) {
 	]);
 }
 
-export default function() {
+export function init() {
 	return readdir(new PathURL('sites').path)
 		// get site modules then import them
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
@@ -52,13 +52,12 @@ export default function() {
 			if (config.discord.disabled)
 				return sites;
 
-			return discord.login()
-				.then(() => discord.initChannels(sites));
+			return login().then(() => initChannels(sites));
 		})
 
 		// launch puppeteer and initialise the database
 		.then(async sites => {
-			await database.init();
+			await dbInit();
 
 			const browser = await puppeteer.launch(config.puppeteer.options);
 			const unitDelay = Math.floor(config.crawler.interval / sites.length);
@@ -72,7 +71,6 @@ export default function() {
 				queue.add(job);
 			}
 
-			return true;
+			return { browser, client };
 		});
-
 }
