@@ -28,25 +28,34 @@ export class Site {
 		const parsed = acorn.parse(this.parseProduct, { ecmaVersion: 2020 });
 		const expression = parsed.body[0].expression;
 		const params = expression.params.map(param => param.name).slice(0, 3);
+
 		if (params.length == 1) params.push('index');
 		if (params.length == 2) params.push('array');
+
 		const fn = this.parseProduct.toString().slice(expression.body.start, expression.body.end);
 
 		return { params: params, fn: fn };
 	}
 
-	getProducts(page) {
-		return page.waitForSelector(this.productsSelector).then(() => {
-			return page.$$eval(this.productsSelector, (products, params, parseProduct) => {
-				return products.map(prod => new Function(params[0], params[1], params[2], parseProduct)(prod));
-			}, this.parseProductFn.params, this.parseProductFn.fn)
-				.then(products => {
-					const results = products.filter(prod => prod)
-						.map(prod => new Product(this, prod))
-						.filter(product => product.url && (!product.size || product.size > 100))
-					return (this.limit) ? results.slice(0, this.limit) : results;
+	async getProducts(page) {
+		await page.waitForSelector(this.productsSelector);
+
+		const products = await page.$$eval(
+			this.productsSelector,
+			(products, params, parseProduct) => {
+				return products.map(prod => {
+					return new Function(params[0], params[1], params[2], parseProduct)(prod)
 				});
-		});
+			},
+			this.parseProductFn.params,
+			this.parseProductFn.fn
+		)
+
+		const results = products.filter(prod => prod)
+			.map(prod => new Product(this, prod))
+			.filter(product => product.url && (!product.size || product.size > 100));
+
+		return (this.limit) ? results.slice(0, this.limit) : results;
 	}
 }
 
