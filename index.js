@@ -1,5 +1,5 @@
 import config from './config.js';
-import { init } from './init.js';
+import { init } from './main.js';
 import { client } from './discord.js';
 
 function info(message, ...args) {
