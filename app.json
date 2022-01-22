@@ -1,0 +1,12 @@
+{
+	"apps": [
+		{
+			"name": "sir-ardbot",
+			"script": "./index.js",
+			"restart_delay": 1000,
+			"cron_restart": "30 4 * * *",
+			"watch": true,
+			"ignore_watch": [ "data.db", "node_modules" ]
+		}
+	]
+}
