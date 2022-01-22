@@ -1,20 +1,25 @@
 import config from './config.js';
-import init from './init.js';
-import { client } from './discord.js';
+import { init } from './init.js';
 
 function info(message, ...args) {
 	return console.info('  \x1b[33msir-ardbot\x1b[0m ' + message, ...args);
 }
 
-function exitHandler(code) {
-	info('Process event %s was received; exiting...', code);
+info('Sir Ardbot is initialising...');
+const { browser, client } = await init();
+
+async function destroy() {
 	if (client.readyAt !== null)
 		client.destroy();
+	await browser.close();
 	process.exit(0);
 }
 
-info('Sir Ardbot is initialising...');
-init();
+function exitHandler(code) {
+	info('Process event %s was received; exiting...', code);
+	destroy();
+}
 
+browser.on('disconnected', destroy);
 process.on('SIGINT', exitHandler);
 process.on('SIGTERM', exitHandler);
