@@ -113,3 +113,52 @@ export async function initChannels(sites) {
 	log('Initialised Discord channels for %d sites!', sites.length);
 	return sites;
 }
+
+export async function sendProducts(products) {
+	const site = products[0].site;
+	const embedsArray = [];
+			
+	products.forEach((product, index) => {
+		const embed = {
+			title: product.name,
+			url: product.url,
+			thumbnail: { url: product.img },
+			fields: [{
+				name: 'Price (excl. VAT)',
+				value: `${product.price} ${product.site.meta.currency}`,
+				inline: true
+			}],
+			timestamp: new Date()
+		};
+
+		if (product.priceUSD) {
+			embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD} USD)`;
+		}
+
+		if (product.size || product.abv) {
+			embed.fields.push({
+				name: ((product.size) ? 'Size' : '') +
+						((product.size && product.abv) ? ' / ' : '') +
+						((product.abv) ? 'ABV' : ''),
+				value: ((product.size) ? `${product.size}ml` : '') +
+						((product.size && product.abv) ? ' / ' : '') +
+						((product.abv) ? `${product.abv}%` : ''),
+				inline: true
+			});
+		}
+
+		if (index == 0) embed.color = 0xEDBC11;
+
+		// 10 is Discord embed length limit apparently
+		// well, at least coording to the link below, so we chop it up
+		// https://birdie0.github.io/discord-webhooks-guide/other/field_limits.html
+		if (index % 10 == 0) embedsArray.push([]);
+		embedsArray[Math.floor(index / 10)].push(embed);
+	});
+
+	for (const embeds of embedsArray) {
+		await site.channel.send({ embeds: embeds });
+	}
+
+	return true;
+}
