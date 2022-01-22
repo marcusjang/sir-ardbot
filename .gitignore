@@ -4,6 +4,9 @@
 node_modules
 .env
 
+# pm2 ecosystem
+app.json
+
 # sqlite3 database
 data.db
 
