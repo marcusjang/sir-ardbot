@@ -72,7 +72,7 @@ export default async function(browser, site) {
 		let products = (await site.getProducts(page)).reverse();
 		log('%s: Successfully crawled %d products', site.domain, products.length);
 
-		page.close();
+		await page.close();
 
 		if (config.crawler.dbcheck) {
 			const records = await getRecords(site);
