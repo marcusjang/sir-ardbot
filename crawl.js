@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
 import { debug } from './utils.js';
+import { sendError } from './discord.js';
 
 const log = debug('sir-ardbot:crawler');
 const error = debug('sir-ardbot:crawler', 'error');
@@ -78,6 +79,8 @@ export default async function(browser, site) {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
+
+		sendError(site, err);
 
 		return false; // return false will be handled in processProducts()
 	} finally {

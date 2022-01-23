@@ -63,19 +63,24 @@ export class Product {
 	constructor(siteObj, prodObj) {
 		this.site = siteObj;
 		this.name = prodObj.name;
-		this.price = prodObj.price ? this.parsePrice(prodObj.price) : null;
-		this.abv = prodObj.abv ? this.parseABV(prodObj.abv) : null;
-		this.size = prodObj.size ? this.parseSize(prodObj.size) : null;
-		this.url = prodObj.url;
-		this.img = prodObj.img || null;
-
-		if (this.url.match(/^\/[^\/]/)) this.url = this.absUrl(this.url);
-		if (this.img && this.img.match(/^\/[^\/]/)) this.img = this.absUrl(this.img);
-		if (this.img && this.img.match(/^\/\/cdn/)) this.img = 'https:' + this.img;
+		this.price = this.parsePrice(prodObj.price);
+		this.abv = this.parseABV(prodObj.abv);
+		this.size = this.parseSize(prodObj.size);
+		this.url = this.absUrl(prodObj.url);
+		this.img = this.absUrl(prodObj.img);
 	}
 
 	absUrl(urlString) {
-		return (!urlString) ? null : 'https://www.' + this.site.domain + urlString;
+		if (!urlString || typeof urlString !== 'string')
+			return null;
+
+		if (urlString.match(/^\/[^\/]/))
+			return 'https://www.' + this.site.domain + urlString;
+
+		if (urlString.match(/^\/{2}/))
+			return 'https:' + urlString;
+
+		return urlString;
 	}
 
 	parseSize(sizeString) {
@@ -102,6 +107,7 @@ export class Product {
 	}
 
 	parsePrice(priceString) {
+		if (!priceString) return null;
 		if (typeof priceString === 'number') return priceString;
 		
 		const separator = (this.site.meta.euroSeparator) ? '.' : ',';

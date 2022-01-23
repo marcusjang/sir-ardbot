@@ -122,8 +122,6 @@ async function processProducts(products) {
 		}
 	}
 
-	log('%s: Successfully crawled %d new products!', site.domain, products.length);
-
 	if (!config.debug.demo && (config.debug.dryrun || !config.debug.dev)) {
 		try {
 			await database.putRecords(products);
