@@ -192,11 +192,10 @@ export async function sendError(error, site) {
 			hidden: true
 		});
 		const channel = await getChannel(errorSite);
-
-		if (!site) site = channel;
+		const { id } = (!site) ? channel : await getChannel(site);
 
 		await channel.send(
-			`An error has occurred from <#${site.id}>:\n` +
+			`An error has occurred from <#${id}>:\n` +
 			'```' + error.toString() + '```'
 		);
 
