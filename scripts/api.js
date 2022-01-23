@@ -7,6 +7,7 @@
 import fetch from 'node-fetch';
 import config from '../config.js';
 import { print } from '../utils.js';
+import { PathURL } from '../classes.js';
 
 process.argv.shift(); // node
 process.argv.shift(); // api.js
@@ -114,8 +115,8 @@ function getGuildCommand(commandName, guildID) {
 		});
 }
 
-function postGuildCommand(commandName, guildID) {
-	const { data } = require(`../commands/${commandName}.js`);
+async function postGuildCommand(commandName, guildID) {
+	const { data } = await import(new PathURL(`commands/${commandName}.js`).href);
 	return getAppID().then(appID => {
 		return request(path.commands(appID, guildID), 'post', data);
 	});
