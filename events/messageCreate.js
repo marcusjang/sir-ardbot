@@ -1,7 +1,12 @@
+import { delay } from '../utils.js';
+
 export default {
 	name: 'messageCreate',
-	execute(message) {
-		if (message.content.match(/whiskybase\.com/i) && message.embeds.length > 0) {
+	async execute(message) {
+		if (message.content.match(/whiskybase\.com/i)) {
+			if(message.embeds.length === 0) await delay(1500);
+
+			if(message.embeds.length > 0) {
 				const [ embed ] = message.embeds;
 				message.suppressEmbeds(true);
 				message.reply({
@@ -21,5 +26,7 @@ export default {
 					}]
 				});
 			}
+		}
+
 	}
 }
