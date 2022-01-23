@@ -6,55 +6,53 @@ import { debug } from './utils.js';
 import { PathURL } from './classes.js';
 
 const log = debug('sir-ardbot:discord');
+const error = debug('sir-ardbot:discord', 'error');
 
-export const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+export const client = new Client({ intents: [ Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES ] });
 
-export function login(token) {
-	return new Promise((resolve) => {
-		if (typeof token !== 'string' || token.length === 0)
-			token = process.env.DISCORD_TOKEN;
+export async function login(token) {
+	if (typeof token !== 'string' || token.length === 0)
+		token = process.env.DISCORD_TOKEN;
 
+	await new Promise((resolve) => {
 		log('Logging into Discord with token %s', token.replace(/^(.{6}).*(.{4})$/, '$1...$2'));
 		client.login(token);
-		
-		client.on('interactionCreate', (interaction) => {
-			if (!interaction.isCommand())
-				return false;
-
-			const command = client.commands.get(interaction.commandName);
-
-			if (!command)
-				return false;
-
-			command.execute(interaction)
-				.catch(error => {
-					console.error(error);
-					interaction.reply({ content: 'error', ephemeral: true });
-				})
-		});
 
 		client.on('ready', () => {
 			log('Logged in on Discord as %s(<@%s>)', client.user.username, client.user.id);
 			client.commands = new Map(); // prep for command setting
 			resolve();
 		});
-	})
-	.then(() => {
-		return readdir(new PathURL('commands').path)
-			.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
-			.then(async commands => {
-				if (commands.length > 0) {
-					log('Found %d command module(s), setting...', commands.length);
-
-					for (const file of commands) {
-						const command = await import(new PathURL(`commands/${file}`).href);
-						client.commands.set(command.data.name, command);
-					}
-				}
-
-				return;
-			});
 	});
+
+	const events = await readdir(new PathURL('events').path)
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))));
+
+	if (events.length > 0) {
+		log('Found %d event handling module(s), setting...', events.length);
+
+		for (const file of events) {
+			const { default: event } = await import(new PathURL(`events/${file}`).href);
+
+			if (event.once) {
+				client.once(event.name, (...args) => event.execute(...args));
+			} else {
+				client.on(event.name, (...args) => event.execute(...args));
+			}
+		}
+	}
+
+	const commands = await readdir(new PathURL('commands').path)
+		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
+
+	if (commands.length > 0) {
+		log('Found %d command module(s), setting...', commands.length);
+
+		for (const file of commands) {
+			const command = await import(new PathURL(`commands/${file}`).href);
+			client.commands.set(command.data.name, command);
+		}
+	}
 }
 
 export async function initChannels(sites) {
