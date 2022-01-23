@@ -18,8 +18,7 @@ const config = {
 		token: env.DISCORD_TOKEN,
 		guildID: env.DISCORD_GUILD_ID,
 		roleIDs: (env.DISCORD_ROLE_ID || '').split(','),
-		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED) ||
-			isTrue(env.DEMO) || isTrue(env.DRYRUN)),
+		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED)),
 		error: (!env.DISCORD_ERROR_CHANNEL || !env.DISCORD_ERROR_CATEGORY) ?
 			false :
 			{

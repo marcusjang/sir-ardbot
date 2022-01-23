@@ -32,23 +32,23 @@ function paceJob(callback, ms, span = 3000) {
 export async function init() {
 	const sites = await readdir(new PathURL('sites').path)
 		.then(files => {
-			const sites = files.filter(file => {
+			files = files.filter(file => {
 				return (file.charAt(0) != '_' && file.endsWith('.js'));
 			});
 
-			if (sites.length === 0) {
+			if (files.length === 0) {
 				config.debug.demo = true;
 				config.discord.disabled = true;
 			}
 
 			if (config.debug.demo) {
 				log('Sir Ardbot is in demo mode');
-				sites = [ '_example.js' ];
+				files = [ '_example.js' ];
 			}
 
-			log('Found %d site module(s)...', sites.length);
+			log('Found %d site module(s)...', files.length);
 
-			return multiImport(sites.map(path => `sites/${path}`));
+			return multiImport(files.map(file => `sites/${file}`));
 		});
 
 	if (!config.discord.disabled) {
@@ -140,7 +140,15 @@ async function processProducts(products) {
 		}
 	}
 
-	if (!config.discord.disabled) {
+	if (config.discord.disabled ||config.debug.dryrun || config.debug.demo) {
+		products.forEach((product, index) => {
+			console.log(product.string);
+			if (index === products.length-1)
+				console.log('');
+		});
+
+		return true; // return true just for good lucks
+	} else {
 		try {
 			return await discord.sendProducts(products);
 		} catch(err) {
@@ -149,12 +157,4 @@ async function processProducts(products) {
 			// nothing to halt now
 		}
 	}
-
-	products.forEach((product, index) => {
-		console.log(product.string);
-		if (index === products.length-1)
-			console.log('');
-	});
-
-	return true; // return true just for good lucks
 }
