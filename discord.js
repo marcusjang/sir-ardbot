@@ -178,9 +178,18 @@ async function getChannel(site) {
 }
 
 export async function sendError(site, error) {
-	const errorSite = new Site('errors', { name: 'Sir Ardbot: Errors', category: 'Administrative', hidden: true });
-	const channel = await getChannel(errorSite);
-	site = await getChannel(site);
+	if (config.discord.error !== false) {
+		const errorSite = new Site('errors', {
+			name: config.discord.error.channel,
+			category: config.discord.error.category,
+			hidden: true
+		});
+		const channel = await getChannel(errorSite);
+		site = await getChannel(site);
 
-	channel.send(`An error has occurred from <#${site.id}>:\n` + '```' + error.toString() + '```');
+		channel.send(
+			`An error has occurred from <#${site.id}>:\n` +
+			'```' + error.toString() + '```'
+		);
+	}
 }
