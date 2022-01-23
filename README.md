@@ -109,6 +109,12 @@ If either `DISCORD_TOKEN` or `DISCORD_GUILD_ID` is not set, the bot will spit ou
 
  * `DISCORD_DISABLE` = `true|false`  
    Overides and disables Discord functionality of the bot when set to `true`
+
+ * `DISCORD_ERROR_CHANNEL`
+   The name of Discord channel for the bot to broadcast errors to. Both this and `DISCORD_ERROR_CATEGORY` needs to be set to enable error broadcasting.
+
+ * `DISCORD_ERROR_CATEGORY`
+   The name of category for the Discord channel for the bot to broadcast errors to. Both this and `DISCORD_ERROR_CHANNEL` needs to be set to enable error broadcasting.
     
 #### Unipass Configurations
  * `UNIPASS_TOKEN`  
