@@ -10,6 +10,7 @@ export default {
 				const [ embed ] = message.embeds;
 				message.suppressEmbeds(true);
 				message.reply({
+					allowedMentions: { repliedUser: false },
 					embeds: [{
 						color: 0x588699,
 						url: embed.url,
@@ -19,7 +20,7 @@ export default {
 							width: 630
 						},
 						author: {
-							name: 'Whiskybase - Ratings and reviews for whisky',
+							name: embed.title,
 							url: embed.url,
 							icon_url: 'https://assets.whiskybase.com/images/logos/icons/base/apple-touch-icon.png?v4'
 						}
