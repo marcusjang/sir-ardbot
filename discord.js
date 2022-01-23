@@ -110,8 +110,15 @@ export async function sendProducts(products) {
 		embedsArray[Math.floor(index / 10)].push(embed);
 	});
 
-	for (const embeds of embedsArray) {
-		await site.channel.send({ embeds: embeds });
+	try {
+		for (const embeds of embedsArray) {
+			await site.channel.send({ embeds: embeds });
+		}
+	} catch(err) {
+		error("%s: We had some uncertain error- to be specific:", site.domain);
+		console.error(err);
+
+		sendError(err, site);
 	}
 
 	return true;
@@ -177,7 +184,7 @@ async function getChannel(site) {
 	return channel;
 }
 
-export async function sendError(site, error) {
+export async function sendError(error, site) {
 	if (config.discord.error !== false) {
 		const errorSite = new Site('errors', {
 			name: config.discord.error.channel,
@@ -185,11 +192,14 @@ export async function sendError(site, error) {
 			hidden: true
 		});
 		const channel = await getChannel(errorSite);
-		site = await getChannel(site);
 
-		channel.send(
+		if (!site) site = channel;
+
+		await channel.send(
 			`An error has occurred from <#${site.id}>:\n` +
 			'```' + error.toString() + '```'
 		);
+
+		return;
 	}
 }

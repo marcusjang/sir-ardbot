@@ -80,7 +80,7 @@ export default async function(browser, site) {
 			console.error(err);
 		}
 
-		sendError(site, err);
+		sendError(err, site);
 
 		return false; // return false will be handled in processProducts()
 	} finally {
