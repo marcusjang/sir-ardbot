@@ -1,6 +1,7 @@
 import { readdir } from 'fs/promises';
 import { Client, Intents } from 'discord.js';
 import config from './config.js';
+import { Site } from './classes.js';
 import { debug } from './utils.js';
 import { PathURL } from './classes.js';
 
@@ -57,57 +58,10 @@ export function login(token) {
 }
 
 export async function initChannels(sites) {
-	const guild = client.guilds.cache.get(config.discord.guildID);
-	const channels = guild.channels.cache;
-
 	log('Initialising Discord channels...');
 
 	for (const site of sites) {
-		const categoryName = site.meta.category.toUpperCase();
-		const category = channels.find(channel => channel.type === 'GUILD_CATEGORY' && channel.name === categoryName);
-
-		if (!category) {
-			log('Category "%s" does not exist yet, creating...', categoryName);
-			const category = await guild.channels.create(categoryName, { type: 'GUILD_CATEGORY' });
-			log('Category "%s" was successfully created', categoryName);
-		}
-
-		const channelName = site.meta.name
-			.toLowerCase()				// first to lowercase (stylistic choices)
-			.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
-			.replace(/\s/g, '-')		// then replace space into dash
-			.replace(/-+/g, '-');		// then remove duplicate dashes
-
-		site.channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
-
-		if (!site.channel) {
-			log('Channel #%s does not exist yet, creating...', channelName);
-			const channelObj = {
-				type: 'GUILD_TEXT',
-				parent: category.id,
-				topic: site.url,
-				permissionOverwrites: [
-					{ id: guild.roles.everyone.id, allow: [ ], deny: [ 'SEND_MESSAGES' ] },
-					{ id: client.user.id, allow: [ 'SEND_MESSAGES' ] }
-				]
-			}
-
-			if (site.hidden && config.discord.roleIDs[0] != '') {
-				const permissions = channelObj.permissionOverwrites;
-				permissions[0].deny.push('VIEW_CHANNEL');
-				for (const roleID of config.discord.roleIDs) {
-					if (roleID && guild.roles.cache.get(roleID))
-						permissions.push({ id: roleID, allow: [ 'VIEW_CHANNEL' ] });
-				}
-			} else {
-				channelObj.permissionOverwrites[0].allow.push('VIEW_CHANNEL');
-			}
-
-			const createdChannel = await guild.channels.create(channelName, channelObj);
-			log('Channel #%s was successfully created', channelName);
-
-			site.channel = createdChannel;
-		}
+		site.channel = await getChannel(site);
 	};
 
 	log('Initialised Discord channels for %d sites!', sites.length);
@@ -161,4 +115,72 @@ export async function sendProducts(products) {
 	}
 
 	return true;
+}
+
+async function getCategory(site) {
+	const guild = client.guilds.cache.get(config.discord.guildID);
+	const channels = guild.channels.cache;
+
+	const categoryName = site.meta.category.toUpperCase();
+	let category = channels.find(channel => channel.type === 'GUILD_CATEGORY' && channel.name === categoryName);
+
+	if (!category) {
+		log('Category "%s" does not exist yet, creating...', categoryName);
+		category = await guild.channels.create(categoryName, { type: 'GUILD_CATEGORY' });
+		log('Category "%s" was successfully created', categoryName);
+	}
+
+	return category;
+}
+
+async function getChannel(site) {
+	const guild = client.guilds.cache.get(config.discord.guildID);
+	const channels = guild.channels.cache;
+
+	const category = await getCategory(site);
+
+	const channelName = site.meta.name
+		.toLowerCase()				// first to lowercase (stylistic choices)
+		.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
+		.replace(/\s/g, '-')		// then replace space into dash
+		.replace(/-+/g, '-');		// then remove duplicate dashes
+
+	let channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
+
+	if (!channel) {
+		log('Channel #%s does not exist yet, creating...', channelName);
+		const channelObj = {
+			type: 'GUILD_TEXT',
+			parent: category.id,
+			topic: site.url,
+			permissionOverwrites: [
+				{ id: guild.roles.everyone.id, allow: [ ], deny: [ 'SEND_MESSAGES' ] },
+				{ id: client.user.id, allow: [ 'SEND_MESSAGES' ] }
+			]
+		}
+
+		if (site.hidden && config.discord.roleIDs[0] != '') {
+			const permissions = channelObj.permissionOverwrites;
+			permissions[0].deny.push('VIEW_CHANNEL');
+			for (const roleID of config.discord.roleIDs) {
+				if (roleID && guild.roles.cache.get(roleID))
+					permissions.push({ id: roleID, allow: [ 'VIEW_CHANNEL' ] });
+			}
+		} else {
+			channelObj.permissionOverwrites[0].allow.push('VIEW_CHANNEL');
+		}
+
+		channel = await guild.channels.create(channelName, channelObj);
+		log('Channel #%s was successfully created', channelName);
+	}
+
+	return channel;
+}
+
+export async function sendError(site, error) {
+	const errorSite = new Site('errors', { name: 'Sir Ardbot: Errors', category: 'Administrative', hidden: true });
+	const channel = await getChannel(errorSite);
+	site = await getChannel(site);
+
+	channel.send(`An error has occurred from <#${site.id}>:\n` + '```' + error.toString() + '```');
 }
