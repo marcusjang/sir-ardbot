@@ -8,7 +8,7 @@ import { PathURL } from './classes.js';
 const log = debug('sir-ardbot:discord');
 const error = debug('sir-ardbot:discord', 'error');
 
-export const client = new Client({ intents: [ Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES ] });
+export const client = new Client({ intents: [ Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES ] });
 
 export async function login(token) {
 	if (typeof token !== 'string' || token.length === 0)

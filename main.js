@@ -64,7 +64,7 @@ export async function init() {
 	browser.on('disconnected', async () => {
 		error('Connection to puppeteer browser has been servered, crashing down...');
 		await discord.sendError(new Error('Connection to puppeteer browser has been servered'));
-		destroy();
+		discord.client.destroy();
 	});
 
 	const unitDelay = Math.floor(config.crawler.interval / sites.length);
