@@ -19,4 +19,4 @@ events/*
 !sites/_example.js
 !sites/README.md
 !commands/_example.js
-!events/interactionCreate.js
+!events/_interactionCreate.js
