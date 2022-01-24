@@ -166,6 +166,13 @@ async function getChannel(site) {
 			]
 		}
 
+		if (process.env.DISCORD_WELCOME_ROLE) {
+			channelObj.permissionOverwrites.push({
+				id: process.env.DISCORD_WELCOME_ROLE,
+				deny: [ 'VIEW_CHANNEL' ]
+			});
+		}
+
 		if (site.hidden && config.discord.roleIDs[0] != '') {
 			const permissions = channelObj.permissionOverwrites;
 			permissions[0].deny.push('VIEW_CHANNEL');
