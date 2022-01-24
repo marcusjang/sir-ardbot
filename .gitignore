@@ -10,11 +10,13 @@ app.json
 # sqlite3 database
 data.db
 
-# sites and commands modules are handled by separate submodules
+# submodules are handled separately
 sites/*
 commands/*
+events/*
 
 # but we'll allow examples to get through
 !sites/_example.js
 !sites/README.md
 !commands/_example.js
+!events/_interactionCreate.js
