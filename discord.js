@@ -127,7 +127,9 @@ async function getCategory(site) {
 	const channels = guild.channels.cache;
 
 	const categoryName = site.meta.category.toUpperCase();
-	let category = channels.find(channel => channel.type === 'GUILD_CATEGORY' && channel.name === categoryName);
+	let category = channels.find(channel => {
+		return (channel.type === 'GUILD_CATEGORY' && channel.name.toUpperCase() === categoryName);
+	});
 
 	if (!category) {
 		log('Category "%s" does not exist yet, creating...', categoryName);
@@ -145,10 +147,10 @@ async function getChannel(site) {
 	const category = await getCategory(site);
 
 	const channelName = site.meta.name
-		.toLowerCase()				// first to lowercase (stylistic choices)
-		.replace(/[^\w\s-]/g, '')	// then remove non-word (excluding dash and space)
-		.replace(/\s/g, '-')		// then replace space into dash
-		.replace(/-+/g, '-');		// then remove duplicate dashes
+		.toLowerCase()              // first to lowercase (stylistic choices)
+		.replace(/[^\w\s-]/g, '')   // then remove non-word (excluding dash and space)
+		.replace(/\s/g, '-')        // then replace space into dash
+		.replace(/-+/g, '-');       // then remove duplicate dashes
 
 	let channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
 
