@@ -65,6 +65,7 @@ export async function init() {
 		error('Connection to puppeteer browser has been servered, crashing down...');
 		await discord.sendError(new Error('Connection to puppeteer browser has been servered'));
 		discord.client.destroy();
+		process.exit(0);
 	});
 
 	const unitDelay = Math.floor(config.crawler.interval / sites.length);
