@@ -52,7 +52,9 @@ export class Site {
 
 		const results = products.filter(prod => prod)
 			.map(prod => new Product(this, prod))
-			.filter(product => product.url && (!product.size || product.size > 100));
+			.filter(product => product.url &&
+				(!product.size || product.size > 100) &&
+				!product.name.match(/\bsample\b/i));
 
 		return (this.limit) ? results.slice(0, this.limit) : results;
 	}
