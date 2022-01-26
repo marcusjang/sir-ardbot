@@ -30,26 +30,7 @@ function paceJob(callback, ms, span = 3000) {
 }
 
 export async function init() {
-	const sites = await readdir(new PathURL('sites').path)
-		.then(files => {
-			files = files.filter(file => {
-				return (file.charAt(0) != '_' && file.endsWith('.js'));
-			});
-
-			if (files.length === 0) {
-				config.debug.demo = true;
-				config.discord.disabled = true;
-			}
-
-			if (config.debug.demo) {
-				log('Sir Ardbot is in demo mode');
-				files = [ '_example.js' ];
-			}
-
-			log('Found %d site module(s)...', files.length);
-
-			return multiImport(files.map(file => `sites/${file}`));
-		});
+	const sites = await getSites();
 
 	if (!config.discord.disabled) {
 		await discord.login();
@@ -79,7 +60,7 @@ export async function init() {
 		queue.add(job);
 	}
 
-	return; // returns nothing
+	return sites;
 }
 
 async function processProducts(products) {
@@ -158,4 +139,27 @@ async function processProducts(products) {
 			// nothing to halt now
 		}
 	}
+}
+
+export async function getSites() {
+	return await readdir(new PathURL('sites').path)
+		.then(files => {
+			files = files.filter(file => {
+				return (file.charAt(0) != '_' && file.endsWith('.js'));
+			});
+
+			if (files.length === 0) {
+				config.debug.demo = true;
+				config.discord.disabled = true;
+			}
+
+			if (config.debug.demo) {
+				log('Sir Ardbot is in demo mode');
+				files = [ '_example.js' ];
+			}
+
+			log('Found %d site module(s)...', files.length);
+
+			return multiImport(files.map(file => `sites/${file}`));
+		});
 }

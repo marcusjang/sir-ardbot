@@ -21,7 +21,8 @@ export class Site {
 		this.parseProduct = data.parseProduct;
 		this.url = (typeof data.url === 'function') ? data.url() : data.url;
 		this.cookies = data.cookies || null;
-		this.hidden = data.hidden || false;
+		this.moderator = data.moderator || false;
+		this.rank = data.rank || 0;
 	}
 
 	get parseProductFn() {

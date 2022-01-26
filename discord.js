@@ -8,23 +8,32 @@ import { PathURL } from './classes.js';
 const log = debug('sir-ardbot:discord');
 const error = debug('sir-ardbot:discord', 'error');
 
-export const client = new Client({ intents: [ Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES ] });
+export const client = new Client({
+	intents: [
+		Intents.FLAGS.GUILDS,
+		Intents.FLAGS.GUILD_MEMBERS,
+		Intents.FLAGS.GUILD_MESSAGES
+	]
+});
 
 export async function login(token) {
 	if (typeof token !== 'string' || token.length === 0)
-		token = process.env.DISCORD_TOKEN;
+		token = config.discord.token;
 
+	// actual login
 	await new Promise((resolve) => {
 		log('Logging into Discord with token %s', token.replace(/^(.{6}).*(.{4})$/, '$1...$2'));
 		client.login(token);
 
 		client.on('ready', () => {
 			log('Logged in on Discord as %s(<@%s>)', client.user.username, client.user.id);
-			client.commands = new Map(); // prep for command setting
 			resolve();
 		});
 	});
 
+	client.guild = client.guilds.cache.get(config.discord.guildID);
+
+	// event modules loading
 	const events = await readdir(new PathURL('events').path)
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))));
 
@@ -42,11 +51,13 @@ export async function login(token) {
 		}
 	}
 
+	// command modules loading
 	const commands = await readdir(new PathURL('commands').path)
 		.then(files => files.filter(file => (file.charAt(0) != '_' && file.endsWith('.js'))))
 
 	if (commands.length > 0) {
 		log('Found %d command module(s), setting...', commands.length);
+		client.commands = new Map(); // prep for command setting
 
 		for (const file of commands) {
 			const command = await import(new PathURL(`commands/${file}`).href);
@@ -59,11 +70,10 @@ export async function initChannels(sites) {
 	log('Initialising Discord channels...');
 
 	for (const site of sites) {
-		site.channel = await getChannel(site);
+		await getChannel(site);
 	};
 
 	log('Initialised Discord channels for %d sites!', sites.length);
-	return sites;
 }
 
 export async function sendProducts(products) {
@@ -122,8 +132,15 @@ export async function sendProducts(products) {
 	return true;
 }
 
+function toChannelName(string) {
+	return string.toLowerCase()     // first to lowercase (stylistic choices)
+		.replace(/[^\w\s-]/g, '')   // then remove non-word (excluding dash and space)
+		.replace(/\s/g, '-')        // then replace space into dash
+		.replace(/-+/g, '-');       // then remove duplicate dashes
+}
+
 async function getCategory(site) {
-	const guild = client.guilds.cache.get(config.discord.guildID);
+	const { guild } = client;
 	const channels = guild.channels.cache;
 
 	const categoryName = site.meta.category.toUpperCase();
@@ -140,48 +157,42 @@ async function getCategory(site) {
 	return category;
 }
 
-async function getChannel(site) {
-	const guild = client.guilds.cache.get(config.discord.guildID);
-	const channels = guild.channels.cache;
+async function createChannel(site, parentID) {
+	const { guild } = client;
 
-	const category = await getCategory(site);
+	// by default everyone cannot view or send
+	const permissions = [
+		{ id: guild.roles.everyone.id, allow: [ ], deny: [ 'SEND_MESSAGES', 'VIEW_CHANNEL' ] },
+		{ id: client.user.id, allow: [ 'SEND_MESSAGES' ] }
+	]
 
-	const channelName = site.meta.name
-		.toLowerCase()              // first to lowercase (stylistic choices)
-		.replace(/[^\w\s-]/g, '')   // then remove non-word (excluding dash and space)
-		.replace(/\s/g, '-')        // then replace space into dash
-		.replace(/-+/g, '-');       // then remove duplicate dashes
-
-	let channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
-
-	if (!channel) {
-		log('Channel #%s does not exist yet, creating...', channelName);
-		const channelObj = {
+	return await guild.channels.create(
+		toChannelName(site.meta.name),
+		{
 			type: 'GUILD_TEXT',
-			parent: category.id,
+			parent: parentID,
 			topic: site.url,
-			permissionOverwrites: [
-				{ id: guild.roles.everyone.id, allow: [ ], deny: [ 'SEND_MESSAGES' ] },
-				{ id: client.user.id, allow: [ 'SEND_MESSAGES' ] }
-			]
+			permissionOverwrites: permissions
 		}
+	);
 
-		if (site.hidden && config.discord.roleIDs[0] != '') {
-			const permissions = channelObj.permissionOverwrites;
-			permissions[0].deny.push('VIEW_CHANNEL');
-			for (const roleID of config.discord.roleIDs) {
-				if (roleID && guild.roles.cache.get(roleID))
-					permissions.push({ id: roleID, allow: [ 'VIEW_CHANNEL' ] });
-			}
-		} else {
-			channelObj.permissionOverwrites[0].allow.push('VIEW_CHANNEL');
-		}
+}
 
-		channel = await guild.channels.create(channelName, channelObj);
+async function getChannel(site) {
+	const { guild } = client;
+	const channels = guild.channels.cache;
+	const channelName = toChannelName(site.meta.name);
+
+	site.channel = channels.find(channel => channel.type === 'GUILD_TEXT' && channel.name === channelName);
+
+	if (!site.channel) {
+		log('Channel #%s does not exist yet, creating...', channelName);
+		const category = await getCategory(site);
+		site.channel = await createChannel(site, category.id);
 		log('Channel #%s was successfully created', channelName);
 	}
 
-	return channel;
+	return site.channel;
 }
 
 export async function sendError(error, site) {
@@ -189,7 +200,7 @@ export async function sendError(error, site) {
 		const errorSite = new Site('errors', {
 			name: config.discord.error.channel,
 			category: config.discord.error.category,
-			hidden: true
+			moderator: true
 		});
 		const channel = await getChannel(errorSite);
 		const { id } = (!site) ? channel : await getChannel(site);
