@@ -13,20 +13,31 @@ const error = debug('sir-ardbot:main', 'error');
 const queue = new Queue(true);
 
 function multiImport(paths) {
-	return Promise.all(
-		paths.map(path => import(new PathURL(path).href))
-	).then(mod => mod.map(mod => mod.default));
+	return Promise.all(paths.map(path => import(new PathURL(path).href)))
+		.then(mod => mod.map(mod => mod.default));
 }
 
-function paceJob(callback, ms, span = 3000) {
-	console.log(callback, ms, span)
-	if (typeof callback !== 'function')
-		return false;
+export async function getSites() {
+	return await readdir(new PathURL('sites').path)
+		.then(files => {
+			files = files.filter(file => {
+				return (file.charAt(0) != '_' && file.endsWith('.js'));
+			});
 
-	return Promise.race([
-		Promise.all([ callback(), delay(ms) ]),
-		delay(ms + span) // basically timeout
-	]);
+			if (files.length === 0) {
+				config.debug.demo = true;
+				config.discord.disabled = true;
+			}
+
+			if (config.debug.demo) {
+				log('Sir Ardbot is in demo mode');
+				files = [ '_example.js' ];
+			}
+
+			log('Found %d site module(s)...', files.length);
+
+			return multiImport(files.map(file => `sites/${file}`));
+		});
 }
 
 export async function init() {
@@ -139,27 +150,4 @@ async function processProducts(products) {
 			// nothing to halt now
 		}
 	}
-}
-
-export async function getSites() {
-	return await readdir(new PathURL('sites').path)
-		.then(files => {
-			files = files.filter(file => {
-				return (file.charAt(0) != '_' && file.endsWith('.js'));
-			});
-
-			if (files.length === 0) {
-				config.debug.demo = true;
-				config.discord.disabled = true;
-			}
-
-			if (config.debug.demo) {
-				log('Sir Ardbot is in demo mode');
-				files = [ '_example.js' ];
-			}
-
-			log('Found %d site module(s)...', files.length);
-
-			return multiImport(files.map(file => `sites/${file}`));
-		});
 }
