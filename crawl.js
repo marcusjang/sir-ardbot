@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import UserAgent from 'user-agents';
 import config from './config.js';
 import { debug } from './utils.js';
 import { sendError } from './discord.js';
@@ -48,6 +49,7 @@ function requestHandler(request) {
 export default async function(browser, site) {
 	const page = await browser.newPage();
 	try {
+		await page.setUserAgent(new UserAgent({ deviceCategory: 'desktop' }));
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
 
