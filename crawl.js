@@ -49,7 +49,8 @@ function requestHandler(request) {
 export default async function(browser, site) {
 	const page = await browser.newPage();
 	try {
-		await page.setUserAgent(new UserAgent({ deviceCategory: 'desktop' }));
+		const userAgent = new UserAgent({ deviceCategory: 'desktop' });
+		await page.setUserAgent(userAgent.toString());
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
 
