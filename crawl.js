@@ -1,5 +1,5 @@
-import { Buffer } from 'buffer';
 import config from './config.js';
+import { Buffer } from 'buffer';
 import { debug } from './utils.js';
 import { sendError } from './discord.js';
 
@@ -73,14 +73,15 @@ export default async function(browser, site) {
 		return products;
 
 	} catch(err) {
-		if (err.name === 'TimeoutError') {
+		if (err instanceof puppeteer.errors.TimeoutError) {
 			error("%s: We somehow timed out?! Maybe it's nothing...", site.domain);
 		} else {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
 
-		sendError(err, site);
+		if (!config.discord.disabled)
+			sendError(err, site);
 
 		return false; // return false will be handled in processProducts()
 	} finally {

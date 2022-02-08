@@ -16,6 +16,7 @@ process.argv.shift(); // crawl.js
 process.env.DEBUG = 'sir-ardbot:*';
 
 config.crawler.dbcheck = false;
+config.discord.disabled = true;
 config.puppeteer.console = true;
 
 const siteName = process.argv.shift();
@@ -29,6 +30,6 @@ puppeteer.launch(config.puppeteer.options).then(browser => {
 		})
 		.finally(() => {
 			browser.close();
-			process.exit(0);
+			//process.exit(0);
 		});
 });

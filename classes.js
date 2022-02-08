@@ -5,7 +5,7 @@
 
 import { URL, fileURLToPath } from 'url';
 import { join } from 'path';
-import * as acorn from 'acorn';
+import { parse } from 'acorn';
 
 export class Site {
 	constructor(domain, data) {
@@ -24,7 +24,7 @@ export class Site {
 	}
 
 	get parseProductFn() {
-		const parsed = acorn.parse(this.parseProduct, { ecmaVersion: 2020 });
+		const parsed = parse(this.parseProduct, { ecmaVersion: 2020 });
 		const expression = parsed.body[0].expression;
 		const params = expression.params.map(param => param.name).slice(0, 3);
 
@@ -61,14 +61,14 @@ export class Site {
 }
 
 export class Product {
-	constructor(siteObj, prodObj) {
-		this.site = siteObj;
-		this.name = prodObj.name;
-		this.price = this.parsePrice(prodObj.price);
-		this.abv = this.parseABV(prodObj.abv);
-		this.size = this.parseSize(prodObj.size);
-		this.url = this.absUrl(prodObj.url);
-		this.img = this.absUrl(prodObj.img);
+	constructor(site, prod) {
+		this.site = site;
+		this.name = prod.name;
+		this.price = this.parsePrice(prod.price);
+		this.abv = this.parseABV(prod.abv);
+		this.size = this.parseSize(prod.size);
+		this.url = this.absUrl(prod.url);
+		this.img = this.absUrl(prod.img);
 	}
 
 	absUrl(urlString) {
@@ -125,8 +125,8 @@ export class Product {
 		// cast into number
 		price = +price;
 
-		// Calculate excl. VAT price when given argument
-		if (this.site.meta.vatRate > 1) price = Math.round(price / this.site.meta.vatRate * 100) / 100;
+		// Calculate excl. VAT price
+		price = price / this.site.meta.vatRate;
 
 		return price;
 	}

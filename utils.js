@@ -1,5 +1,6 @@
 import { default as debugModule } from 'debug';
 import { inspect } from 'util';
+import { PathURL } from './classes.js';
 
 export function debug(name, type = 'log') {
 	const types = [ 'debug', 'error', 'info', 'log', 'warn' ];
@@ -21,4 +22,23 @@ export function print(object) {
 
 export function delay(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+export async function readJSON(file) {
+	const path = new PathURL(file).path;
+	return await readFile(path, 'utf-8')
+		.then(text => JSON.parse(text));
+}
+
+export async function saveJSON(file, object) {
+	const path = new PathURL(file).path;
+	const text = JSON.stringify(results, null, 4);
+	await writeFile(path, text, 'utf-8');
+}
+
+export async function modifyJSON(file, callbackFn) {
+	const json = await readJSON(file).then(callbackFn);
+	await saveJSON(file, json);
+	return json;
 }
