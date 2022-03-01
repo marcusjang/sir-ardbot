@@ -66,7 +66,7 @@ export function init(tables = tablesSchema) {
 export function getRecords(site, limit) {
 	if (!limit) limit = Math.max(site.limit * 4, 200);
 	return db.select('url', 'created_at').where('site', site.domain)
-			.from('products').orderBy('created_at', 'desc').limit(limit);
+			.from('products').orderBy('created_at', 'desc');
 }
 
 export function putRecords(products) {
