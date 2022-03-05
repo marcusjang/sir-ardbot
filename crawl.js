@@ -1,4 +1,5 @@
 import config from './config.js';
+import puppeteer from 'puppeteer';
 import { Buffer } from 'buffer';
 import { debug } from './utils.js';
 import { sendError } from './discord.js';
