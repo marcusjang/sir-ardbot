@@ -181,6 +181,11 @@ export class Queue {
 
 		return true;
 	}
+
+	destroy() {
+		this.queue = [];
+		return true;
+	}
 }
 
 export class PathURL extends URL {

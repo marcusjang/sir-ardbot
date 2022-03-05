@@ -82,8 +82,10 @@ void async function init() {
 	}
 
 	// exit handling
-	async function exit() {
+	function exit() {
 		log('Exiting gracefully...');
+
+		queue.destroy();
 		client.destroy();
 		db.destroy();
 		browser.close();
