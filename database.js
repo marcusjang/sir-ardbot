@@ -60,7 +60,7 @@ function createTables(tables) {
 }
 
 export function init(tables = tablesSchema) {
-	return checkTables(tables).then(createTables);
+	return checkTables(tables).then(createTables).then(() => db);
 }
 
 export function getRecords(site, limit) {

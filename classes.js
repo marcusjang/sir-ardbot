@@ -5,7 +5,7 @@
 
 import { URL, fileURLToPath } from 'url';
 import { join } from 'path';
-import * as acorn from 'acorn';
+import { parse } from 'acorn';
 
 export class Site {
 	constructor(domain, data) {
@@ -21,11 +21,10 @@ export class Site {
 		this.parseProduct = data.parseProduct;
 		this.url = (typeof data.url === 'function') ? data.url() : data.url;
 		this.cookies = data.cookies || null;
-		this.hidden = data.hidden || false;
 	}
 
 	get parseProductFn() {
-		const parsed = acorn.parse(this.parseProduct, { ecmaVersion: 2020 });
+		const parsed = parse(this.parseProduct, { ecmaVersion: 2020 });
 		const expression = parsed.body[0].expression;
 		const params = expression.params.map(param => param.name).slice(0, 3);
 
@@ -53,21 +52,23 @@ export class Site {
 
 		const results = products.filter(prod => prod)
 			.map(prod => new Product(this, prod))
-			.filter(product => product.url && (!product.size || product.size > 100));
+			.filter(product => product.url &&
+				(!product.size || product.size > 100) &&
+				!product.name.match(/\bsample\b/i));
 
 		return (this.limit) ? results.slice(0, this.limit) : results;
 	}
 }
 
 export class Product {
-	constructor(siteObj, prodObj) {
-		this.site = siteObj;
-		this.name = prodObj.name;
-		this.price = this.parsePrice(prodObj.price);
-		this.abv = this.parseABV(prodObj.abv);
-		this.size = this.parseSize(prodObj.size);
-		this.url = this.absUrl(prodObj.url);
-		this.img = this.absUrl(prodObj.img);
+	constructor(site, prod) {
+		this.site = site;
+		this.name = prod.name;
+		this.price = this.parsePrice(prod.price);
+		this.abv = this.parseABV(prod.abv);
+		this.size = this.parseSize(prod.size);
+		this.url = this.absUrl(prod.url);
+		this.img = this.absUrl(prod.img);
 	}
 
 	absUrl(urlString) {
@@ -124,8 +125,8 @@ export class Product {
 		// cast into number
 		price = +price;
 
-		// Calculate excl. VAT price when given argument
-		if (this.site.meta.vatRate > 1) price = Math.round(price / this.site.meta.vatRate * 100) / 100;
+		// Calculate excl. VAT price
+		price = price / this.site.meta.vatRate;
 
 		return price;
 	}
@@ -151,6 +152,7 @@ export class Queue {
 		this.repeat = repeat || false;
 		this.queue = (jobs && typeof jobs === 'array') || [];
 		this.working = false;
+		this.destroyed = false;
 	}
 
 	add(work) {
@@ -162,7 +164,7 @@ export class Queue {
 	}
 
 	start() {
-		if (this.working) return false;
+		if (this.working || this.destroyed) return false;
 
 		const job = this.queue.shift();
 		if (!job) return false;
@@ -172,12 +174,22 @@ export class Queue {
 		job.work()
 			.then(job.resolve)
 			.catch(job.reject)
-			.finally(() => { 
-				if (this.repeat) this.queue.push(job);
+			.finally(() => {
+				if (this.destroyed)
+					return false;
+
+				if (this.repeat)
+					this.queue.push(job);
+
 				this.working = false;
 				this.start();
 			});
 
+		return true;
+	}
+
+	destroy() {
+		this.destroyed = true;
 		return true;
 	}
 }

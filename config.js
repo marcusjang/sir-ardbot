@@ -17,7 +17,6 @@ const config = {
 	discord: {
 		token: env.DISCORD_TOKEN,
 		guildID: env.DISCORD_GUILD_ID,
-		roleIDs: (env.DISCORD_ROLE_ID || '').split(','),
 		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED)),
 		error: (!env.DISCORD_ERROR_CHANNEL || !env.DISCORD_ERROR_CATEGORY) ?
 			false :
@@ -34,7 +33,15 @@ const config = {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
 		path: env.PUPPETEER_PATH || false,
 		console: isTrue(env.PUPPETEER_CONSOLE),
-		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox' ] }
+		options: {
+			args: [
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--single-process',
+				'--no-zygote'
+			],
+			handleSIGINT: false
+		}
 	},
 	debug: {
 		dev: isTrue(env.DEV),

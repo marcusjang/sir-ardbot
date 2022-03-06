@@ -1,6 +1,6 @@
-import { Buffer } from 'buffer';
-import UserAgent from 'user-agents';
 import config from './config.js';
+import puppeteer from 'puppeteer';
+import { Buffer } from 'buffer';
 import { debug } from './utils.js';
 import { sendError } from './discord.js';
 
@@ -49,8 +49,6 @@ function requestHandler(request) {
 export default async function(browser, site) {
 	const page = await browser.newPage();
 	try {
-		const userAgent = new UserAgent({ deviceCategory: 'desktop' });
-		await page.setUserAgent(userAgent.toString());
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
 
@@ -76,17 +74,21 @@ export default async function(browser, site) {
 		return products;
 
 	} catch(err) {
-		if (err.name === 'TimeoutError') {
+		if (err instanceof puppeteer.errors.TimeoutError) {
 			error("%s: We somehow timed out?! Maybe it's nothing...", site.domain);
+		} else if (err.name === 'ProtocolError' || !page.browser().isConnected()) {
+			error("%s: A protocol error happened, possibly the connections have been servered...", site.domain);
 		} else {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
 
-		sendError(err, site);
+		if (!config.discord.disabled)
+			sendError(err, site);
 
 		return false; // return false will be handled in processProducts()
 	} finally {
-		page.close();
+		if (!page.isClosed() && page.browser().isConnected())
+			await page.close();
 	}
 }
