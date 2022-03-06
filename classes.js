@@ -152,6 +152,7 @@ export class Queue {
 		this.repeat = repeat || false;
 		this.queue = (jobs && typeof jobs === 'array') || [];
 		this.working = false;
+		this.destroyed = false;
 	}
 
 	add(work) {
@@ -163,7 +164,7 @@ export class Queue {
 	}
 
 	start() {
-		if (this.working) return false;
+		if (this.working || this.destroyed) return false;
 
 		const job = this.queue.shift();
 		if (!job) return false;
@@ -173,8 +174,13 @@ export class Queue {
 		job.work()
 			.then(job.resolve)
 			.catch(job.reject)
-			.finally(() => { 
-				if (this.repeat) this.queue.push(job);
+			.finally(() => {
+				if (this.destroyed)
+					return false;
+
+				if (this.repeat)
+					this.queue.push(job);
+
 				this.working = false;
 				this.start();
 			});
@@ -183,7 +189,7 @@ export class Queue {
 	}
 
 	destroy() {
-		this.queue = [];
+		this.destroyed = true;
 		return true;
 	}
 }
