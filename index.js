@@ -67,7 +67,8 @@ void async function init() {
 		error('Connection to puppeteer browser has been servered, exiting...');
 		if (!config.discord.disabled) {
 			await discord.sendError(new Error('Connection to puppeteer browser has been servered'))
-				.then(exit);
+			await delay(1000);
+			exit();
 		}
 	});
 

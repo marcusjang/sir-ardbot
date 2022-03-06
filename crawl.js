@@ -76,7 +76,7 @@ export default async function(browser, site) {
 	} catch(err) {
 		if (err instanceof puppeteer.errors.TimeoutError) {
 			error("%s: We somehow timed out?! Maybe it's nothing...", site.domain);
-		} else if (err instanceof puppeteer.errors.ProtocolError) {
+		} else if (err.name === 'ProtocolError' || !page.browser().isConnected()) {
 			error("%s: A protocol error happened, possibly the connections have been servered...", site.domain);
 		} else {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
@@ -88,7 +88,7 @@ export default async function(browser, site) {
 
 		return false; // return false will be handled in processProducts()
 	} finally {
-		if (!page.isClosed())
+		if (!page.isClosed() && page.browser().isConnected())
 			await page.close();
 	}
 }
