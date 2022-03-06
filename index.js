@@ -64,7 +64,7 @@ void async function init() {
 	log('Initialised puppeteer browser instance...');
 
 	browser.on('disconnected', async () => {
-		error('Connection to puppeteer browser has been servered, crashing down...');
+		error('Connection to puppeteer browser has been servered, exiting...');
 		if (!config.discord.disabled) {
 			await discord.sendError(new Error('Connection to puppeteer browser has been servered'))
 				.then(exit);
@@ -83,12 +83,15 @@ void async function init() {
 
 	// exit handling
 	function exit() {
-		log('Exiting gracefully...');
-
 		queue.destroy();
-		client.destroy();
+
 		db.destroy();
-		browser.close();
+
+		if (client.token !== null)
+			client.destroy();
+
+		if (browser.isConnected())
+			browser.close();
 	}
 
 	process.on('SIGINT', exit);

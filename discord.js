@@ -146,7 +146,7 @@ export async function getChannel(site) {
 }
 
 export async function sendError(error, site) {
-	if (config.discord.error !== false) {
+	if (config.discord.error !== false && client.token !== null) {
 		const errorSite = new Site('errors', {
 			name: config.discord.error.channel,
 			category: config.discord.error.category,
