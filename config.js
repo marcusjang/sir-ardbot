@@ -33,7 +33,15 @@ const config = {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
 		path: env.PUPPETEER_PATH || false,
 		console: isTrue(env.PUPPETEER_CONSOLE),
-		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox' ], handleSIGINT: false }
+		options: {
+			args: [
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--single-process',
+				'--no-zygote'
+			],
+			handleSIGINT: false
+		}
 	},
 	debug: {
 		dev: isTrue(env.DEV),
