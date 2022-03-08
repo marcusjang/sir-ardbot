@@ -18,6 +18,7 @@ process.env.DEBUG = 'sir-ardbot:*';
 config.crawler.dbcheck = false;
 config.discord.disabled = true;
 config.puppeteer.console = true;
+//config.puppeteer.options.headless = false;
 
 const siteName = process.argv.shift();
 const site = (await import(new PathURL(`sites/${siteName}.js`).href)).default;
