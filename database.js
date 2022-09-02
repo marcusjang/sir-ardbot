@@ -21,7 +21,7 @@ const tablesSchema = [{
 	}
 }];
 
-if (!config.unipass.disabled) {
+if (!config.dataApi.disabled) {
 	tablesSchema.push({
 		name: 'rates',
 		create: table => {

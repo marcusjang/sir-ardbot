@@ -107,7 +107,7 @@ async function processProducts(products) {
 		return false;
 	}
 
-	if (!config.unipass.disabled) {
+	if (!config.dataApi.disabled) {
 		try {
 			const rates = await getRates();
 			for (const product of products) {

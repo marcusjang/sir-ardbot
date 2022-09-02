@@ -1,6 +1,6 @@
 /*
  *	currency.js
- *		stuffs to interface with unipass forex rate openapi
+ *		stuffs to interface with data.go.kr api forex rate openapi
  *	
  */
 
@@ -17,8 +17,6 @@ const parser = new XMLParser();
 // just because the keys to the api are so confusing
 // hopefully they won't be changing api anytime soon
 const keys = {
-	return: 'trifFxrtInfoQryRtnVo',
-	result: 'trifFxrtInfoQryRsltVo',
 	begins: 'aplyBgnDt',
 	currency: 'currSgn',
 	rate: 'fxrt'
@@ -42,8 +40,8 @@ function toYyMMdd(date = new Date()) {
 }
 
 function getAPIURL(date = new Date()) {
-	return 'https://unipass.customs.go.kr:38010/ext/rest/trifFxrtInfoQry/retrieveTrifFxrtInfo' + 
-		   `?crkyCn=${config.unipass.token}&imexTp=2&qryYymmDd=${toYyMMdd(date)}`;
+	return 'http://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getRetrieveTrifFxrtInfo' + 
+		   `?serviceKey=${encodeURIComponent(config.dataApi.token)}&weekFxrtTpcd=2&aplyBgnDt=${toYyMMdd(date)}`;
 }
 
 export function getFutureDay(date = new Date(), offset = 7) {
@@ -67,7 +65,7 @@ export async function getRates(date = new Date()) {
 				.then(text => parser.parse(text));
 
 			const rates = {};
-			const results = data[keys.return][keys.result];
+			const results = data.response.body.items.item;
 			results.forEach(rate => {
 				const currency = rate[keys.currency];
 				rates[currency] = rate[keys.rate];
