@@ -26,9 +26,9 @@ const config = {
 				category: env.DISCORD_ERROR_CATEGORY
 			}
 	},
-	unipass: {
-		token: env.UNIPASS_TOKEN,
-		disabled: (!env.UNIPASS_TOKEN || isTrue(env.UNIPASS_DISABLED) || isTrue(env.DEMO))
+	dataApi: {
+		token: env.DATAAPI_TOKEN,
+		disabled: (!env.DATAAPI_TOKEN || isTrue(env.DATAAPI_DISABLED) || isTrue(env.DEMO))
 	},
 	puppeteer: {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
