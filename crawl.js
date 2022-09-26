@@ -47,6 +47,17 @@ function requestHandler(request) {
 }
 
 export default async function(browser, site) {
+
+	if (site.delay > 0) {
+		if (site.counter === 0) {
+			site.counter = site.delay;
+		} else {
+			site.counter--;
+			log('%s: Will be skipped for now, remaining counter: %d...', site.domain, site.counter);
+			return false;
+		}
+	}
+
 	const page = await browser.newPage();
 	try {
 		const userAgent = new UserAgent({ deviceCategory: 'desktop' });
@@ -82,6 +93,8 @@ export default async function(browser, site) {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
 		}
+
+		site.counter = (site.delay / 10); // Soft-reset the counter so we can try again sooner
 
 		sendError(err, site);
 
