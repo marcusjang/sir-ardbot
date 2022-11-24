@@ -82,6 +82,9 @@ export class Product {
 		if (urlString.match(/^\/{2}/))
 			return 'https:' + urlString;
 
+		if (!urlString.match(/^http/))
+			return null;
+
 		return urlString;
 	}
 
