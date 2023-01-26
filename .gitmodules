@@ -10,3 +10,7 @@
 	path = events
 	url = git@github.com:marcusjang/sir-ardbot-events.git
 	branch = main
+[submodule "updater"]
+	path = updater
+	url = git@github.com:marcusjang/sir-ardbot-updater.git
+
