@@ -6,13 +6,10 @@ export function debug(name, type = 'log') {
 	if (!types.find(value => type === value))
 		return console.log;
 
-	if (type !== 'log')
-		name = name + '-' + type;
+	const debug = debugModule(name);
+	debug.log = console[type].bind(console);
 
-	const log = debugModule(name);
-	log.log = console[type].bind(console);
-
-	return log;
+	return (type === 'log') ? debug : debug.extend(type);
 }
 
 export function print(object) {
