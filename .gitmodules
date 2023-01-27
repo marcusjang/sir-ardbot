@@ -1,3 +1,0 @@
-[submodule "updater"]
-	path = updater
-	url = git@github.com:marcusjang/sir-ardbot-updater.git
