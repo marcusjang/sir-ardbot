@@ -19,11 +19,12 @@ const config = {
 		guildID: env.DISCORD_GUILD_ID,
 		roleIDs: (env.DISCORD_ROLE_ID || '').split(','),
 		disabled: (!env.DISCORD_TOKEN || isTrue(env.DISCORD_DISABLED)),
-		error: (!env.DISCORD_ERROR_CHANNEL || !env.DISCORD_ERROR_CATEGORY) ?
+		logging: (!env.DISCORD_ERROR_CHANNEL || !env.DISCORD_LOGGING_CATEGORY) ?
 			false :
 			{
-				channel: env.DISCORD_ERROR_CHANNEL,
-				category: env.DISCORD_ERROR_CATEGORY
+				error: env.DISCORD_ERROR_CHANNEL,
+				logging: env.DISCORD_LOGGING_CHANNEL,
+				category: env.DISCORD_LOGGING_CATEGORY
 			}
 	},
 	dataApi: {

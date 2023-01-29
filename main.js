@@ -1,15 +1,18 @@
 import { readdir } from 'fs/promises';
+import child_process from 'node:child_process';
+import { promisify } from 'node:util';
 import puppeteer from 'puppeteer';
 import config from './config.js';
 import * as discord from './discord.js';
 import * as database from './database.js';
 import { getRates } from './currency.js';
 import crawl from './crawl.js';
-import { debug, delay } from './utils.js';
+import { debug, delay, print } from './utils.js';
 import { PathURL, Queue } from './classes.js'
 
 const log = debug('sir-ardbot:main');
 const error = debug('sir-ardbot:main', 'error');
+const exec = promisify(child_process.exec);
 const queue = new Queue(true);
 
 function multiImport(paths) {
@@ -54,6 +57,9 @@ export async function init() {
 	if (!config.discord.disabled) {
 		await discord.login();
 		await discord.initChannels(sites); // initChannels() directly modifies the sites var
+		const { stdout } = await exec('git describe --long HEAD');
+		const [ , tag, ahead, commit ] = stdout.trim().match(/^(.+)-(\d+)-g([a-f0-9]{7})$/);
+		await discord.sendLogs(`Sir Ardbot \`${tag}\` was initialised at commit \`${commit}\` (ahead by ${ahead})`);
 	}
 
 	await database.init();

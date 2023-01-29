@@ -192,10 +192,10 @@ async function getChannel(site) {
 }
 
 export async function sendError(error, site) {
-	if (config.discord.error !== false) {
+	if (config.discord.logging !== false) {
 		const errorSite = new Site('errors', {
 			name: config.discord.error.channel,
-			category: config.discord.error.category,
+			category: config.discord.logging.category,
 			hidden: true
 		});
 		const channel = await getChannel(errorSite);
@@ -205,6 +205,22 @@ export async function sendError(error, site) {
 			`An error has occurred from <#${id}>:\n` +
 			'```' + error.toString() + '```'
 		);
+
+		return;
+	}
+}
+
+export async function sendLogs(message, site) {
+	if (config.discord.logging !== false) {
+		const loggingSite = new Site('logging', {
+			name: config.discord.logging.logging,
+			category: config.discord.logging.category,
+			hidden: true
+		});
+		const channel = await getChannel(loggingSite);
+		const { id } = (!site) ? channel : await getChannel(site);
+
+		await channel.send(message);
 
 		return;
 	}
