@@ -87,16 +87,21 @@ export default async function(browser, site) {
 		return products;
 
 	} catch(err) {
+		site.counter = (site.delay / 10); // Soft-reset the counter so we can try again sooner
+
 		if (err.name === 'TimeoutError') {
 			error("%s: We somehow timed out?! Maybe it's nothing...", site.domain);
+			
+			site.timeoutCounter++;
+			if (site.timeoutCounter >= 4) {
+				site.timeoutCounter = 0;
+				await sendError(err, site);
+			}
 		} else {
 			error("%s: We had some uncertain error- to be specific:", site.domain);
 			console.error(err);
+			await sendError(err, site);
 		}
-
-		site.counter = (site.delay / 10); // Soft-reset the counter so we can try again sooner
-
-		sendError(err, site);
 
 		return false; // return false will be handled in processProducts()
 	} finally {
