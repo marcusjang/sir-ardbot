@@ -84,6 +84,8 @@ export default async function(browser, site) {
 
 		log('%s: Crawling done! Returning with products...', site.domain);
 
+		site.timeoutCounter = 0;
+
 		return products;
 
 	} catch(err) {
