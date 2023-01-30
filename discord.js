@@ -194,7 +194,7 @@ async function getChannel(site) {
 export async function sendError(error, site) {
 	if (config.discord.logging !== false) {
 		const errorSite = new Site('errors', {
-			name: config.discord.error.channel,
+			name: config.discord.logging.error,
 			category: config.discord.logging.category,
 			hidden: true
 		});
