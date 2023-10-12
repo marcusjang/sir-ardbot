@@ -77,7 +77,7 @@ export default async function(browser, site) {
 
 		log('%s: Start crawling...', site.domain);
 
-		await page.goto(site.url, { waitUntil: [ 'load' ] });
+		await page.goto(site.url, { waitUntil: [ 'networkidle2' ] });
 		const products = await site.getProducts(page);
 
 		log('%s: Crawling done! Returning with products...', site.domain);
