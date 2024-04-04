@@ -57,7 +57,7 @@ export async function init() {
 	if (!config.discord.disabled) {
 		await discord.login();
 		await discord.initChannels(sites); // initChannels() directly modifies the sites var
-		const { stdout } = await exec('git describe --long HEAD');
+		const { stdout } = await exec('git describe --tags HEAD');
 		const [ , tag, ahead, commit ] = stdout.trim().match(/^(.+)-(\d+)-g([a-f0-9]{7})$/);
 		await discord.sendLogs(`Sir Ardbot \`${tag}\` was initialised at commit \`${commit}\` (ahead by ${ahead})`);
 	}
