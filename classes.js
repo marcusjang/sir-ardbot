@@ -41,8 +41,6 @@ export class Site {
 	}
 
 	async getProducts(page) {
-		await page.waitForSelector(this.productsSelector);
-
 		const products = await page.$$eval(
 			this.productsSelector,
 			(products, params, parseProduct) => {
