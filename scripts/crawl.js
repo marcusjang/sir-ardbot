@@ -4,7 +4,8 @@
  *	
  */
 
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import config from '../config.js';
 import { print } from '../utils.js';
 import { PathURL } from '../classes.js';
@@ -21,6 +22,7 @@ config.puppeteer.console = true;
 const siteName = process.argv.shift();
 const site = (await import(new PathURL(`sites/${siteName}.js`).href)).default;
 
+puppeteer.use(StealthPlugin());
 puppeteer.launch(config.puppeteer.options).then(browser => {
 	return crawl(browser, site)
 		.then(results => {
