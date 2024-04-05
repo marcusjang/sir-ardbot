@@ -1,7 +1,8 @@
 import { readdir } from 'fs/promises';
 import child_process from 'node:child_process';
 import { promisify } from 'node:util';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import config from './config.js';
 import * as discord from './discord.js';
 import * as database from './database.js';
@@ -64,6 +65,7 @@ export async function init() {
 
 	await database.init();
 
+	puppeteer.use(StealthPlugin());
 	const browser = await puppeteer.launch(config.puppeteer.options);
 	log('Initialised puppeteer browser instance...');
 
