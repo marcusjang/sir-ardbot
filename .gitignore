@@ -1,5 +1,8 @@
 # .gitignore
 
+# NixOS development shell
+shell.nix
+
 # obvious ones for nodejs projects
 node_modules
 .env
