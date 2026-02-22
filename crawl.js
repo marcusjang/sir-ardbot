@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
-import { debug } from './utils.js';
+import { debug, delay } from './utils.js';
 import { sendError } from './discord.js';
 
 const log = debug('sir-ardbot:crawler');
@@ -57,7 +57,9 @@ export default async function(browser, site) {
 		}
 	}
 
+	await delay(1000);
 	const page = await browser.newPage();
+	await delay(1000);
 	try {
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
@@ -105,6 +107,6 @@ export default async function(browser, site) {
 
 		return false; // return false will be handled in processProducts()
 	} finally {
-		page.close();
+		await page.close();
 	}
 }
