@@ -192,6 +192,6 @@ export class PathURL extends URL {
 	}
 
 	get path() {
-		return fileURLToPath(this);
+		return fileURLToPath(this.href);
 	}
 }
