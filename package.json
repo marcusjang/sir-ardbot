@@ -1,6 +1,6 @@
 {
   "name": "sir-ardbot",
-  "version": "2.0.17",
+  "version": "2.0.18",
   "description": "Sir Ardbot is a crawling bot for new listings on various online retailers.",
   "main": "index.js",
   "type": "module",
@@ -18,7 +18,7 @@
     "debug": "^4.3.4",
     "discord.js": "^13.12.0",
     "dotenv": "^16.4.5",
-    "fast-xml-parser": "^4.3.6",
+    "fast-xml-parser": "^5.3.7",
     "knex": "^2.4.0",
     "node-fetch": "^3.3.2",
     "puppeteer": "^24.37.5",
