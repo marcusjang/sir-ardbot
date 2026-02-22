@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import config from './config.js';
-import { debug } from './utils.js';
+import { debug, delay } from './utils.js';
 import { sendError } from './discord.js';
 
 const log = debug('sir-ardbot:crawler');
@@ -58,6 +58,7 @@ export default async function(browser, site) {
 	}
 
 	const page = await browser.newPage();
+	await delay(1000);
 	try {
 		await page.setDefaultTimeout(config.puppeteer.timeout);
 		await page.setRequestInterception(true);
@@ -76,8 +77,10 @@ export default async function(browser, site) {
 
 		log('%s: Start crawling...', site.domain);
 
+		await delay(1000);
 		await page.goto(site.url, { waitUntil: [ 'load' ] });
 		await page.waitForSelector(site.productsSelector);
+		await delay(1000);
 		const products = await site.getProducts(page);
 
 		log('%s: Crawling done! Returning with products...', site.domain);

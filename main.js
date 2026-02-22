@@ -67,6 +67,7 @@ export async function init() {
 
 	puppeteer.use(StealthPlugin());
 	const browser = await puppeteer.launch(config.puppeteer.options);
+	await delay(1000);
 	log('Initialised puppeteer browser instance...');
 
 	browser.on('disconnected', async () => {
