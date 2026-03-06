@@ -1,0 +1,10 @@
+version = 1
+
+[[apps]]
+name = "sir-ardbot"
+command = "npm start"
+
+[[apps]]
+name = "sir-ardbot-updater"
+command = "node updater/index.js"
+
