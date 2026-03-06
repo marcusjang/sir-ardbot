@@ -81,6 +81,7 @@ export default async function(browser, site) {
 		await page.goto(site.url, { waitUntil: [ 'load' ] });
 		await page.waitForSelector(site.productsSelector);
 		const products = await site.getProducts(page);
+		await delay(2000);
 
 		log('%s: Crawling done! Returning with products...', site.domain);
 
