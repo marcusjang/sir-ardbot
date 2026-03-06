@@ -1,5 +1,11 @@
 version = 1
 
+[defaults]
+restart_policy = "always"
+max_restarts = 10
+env = { PATH = "/root/.nvm/versions/node/v24.14.0/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" }
+cwd = "/root/sir-ardbot"
+
 [[apps]]
 name = "sir-ardbot"
 command = "npm start"
@@ -7,4 +13,4 @@ command = "npm start"
 [[apps]]
 name = "sir-ardbot-updater"
 command = "node updater/index.js"
-
+ 
