@@ -66,7 +66,7 @@ export default async function(browser, site) {
 
 		if (site.cookies) {
 			for (const cookie of site.cookies) {
-				await page.setCookie(cookie);
+				await browser.setCookie(cookie);
 			}
 		}
 
