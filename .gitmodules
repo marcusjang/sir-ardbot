@@ -2,15 +2,20 @@
 	path = sites
 	url = git@github.com:marcusjang/sir-ardbot-sites.git
 	branch = es6
+	update = merge
 [submodule "commands"]
 	path = commands
 	url = git@github.com:marcusjang/sir-ardbot-commands.git
 	branch = es6
+	update = merge
 [submodule "events"]
 	path = events
 	url = git@github.com:marcusjang/sir-ardbot-events.git
 	branch = main
+	update = merge
 [submodule "updater"]
 	path = updater
 	url = git@github.com:marcusjang/sir-ardbot-updater.git
+	branch = main
+	update = merge
 
