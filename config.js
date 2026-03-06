@@ -35,7 +35,7 @@ const config = {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
 		path: env.PUPPETEER_PATH || false,
 		console: isTrue(env.PUPPETEER_CONSOLE),
-		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors' ] }
+		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors', '--disable-crash-reporter' ] }
 	},
 	debug: {
 		dev: isTrue(env.DEV),
