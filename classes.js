@@ -54,7 +54,17 @@ export class Site {
 
 		const results = products.filter(prod => prod)
 			.map(prod => new Product(this, prod))
-			.filter(product => product.url && (!product.size || product.size > 100));
+			.filter(product => product.url && (!product.size || product.size > 100))
+			.filter(product => { // name based filtering
+				const { name } = product;
+				if (name.includes("テイスティング") || // tasting
+					name.includes("焼酎") || // sochu
+					name.includes("要冷蔵") || // refrigerated
+					name.includes("1800ml") || // common sake size
+					name.includes("720ml") // common sake size
+				) return false;
+				return true;
+			});
 
 		return (this.limit) ? results.slice(0, this.limit) : results;
 	}
