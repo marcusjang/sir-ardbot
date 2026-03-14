@@ -23,7 +23,7 @@ export class Site {
 		this.cookies = data.cookies || null;
 		this.hidden = data.hidden || false;
 		this.delay = data.delay || 0;
-		this.counter = this.delay;
+		this.counter = 0;
 		this.timeoutCounter = 0;
 	}
 
