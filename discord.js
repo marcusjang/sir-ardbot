@@ -77,14 +77,14 @@ export async function sendProducts(products) {
 			thumbnail: { url: product.img },
 			fields: [{
 				name: 'Price (excl. VAT)',
-				value: `${product.price} ${product.site.meta.currency}`,
+				value: `${product.price.toLocaleString("en")} ${product.site.meta.currency}`,
 				inline: true
 			}],
 			timestamp: new Date()
 		};
 
 		if (product.priceUSD) {
-			embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD} USD)`;
+			embed.fields[0].value = embed.fields[0].value + ` (≒ ${product.priceUSD.toLocaleString("en")} USD)`;
 		}
 
 		if (product.size || product.abv) {
