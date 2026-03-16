@@ -35,7 +35,20 @@ const config = {
 		timeout: env.PUPPETEER_TIMEOUT*1 || 10000,
 		path: env.PUPPETEER_PATH || false,
 		console: isTrue(env.PUPPETEER_CONSOLE),
-		options: { args: [ '--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors', '--disable-crash-reporter' ] }
+		options: {
+			args: [
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--ignore-certificate-errors',
+				'--disable-crash-reporter',
+				'--disable-features=FedCm',
+				'--disable-dev-shm-usage',
+				'--disable-accelerated-2d-canvas',
+				'--no-first-run',
+				'--no-zygote',
+				'--disable-gpu'
+			]
+		}
 	},
 	debug: {
 		dev: isTrue(env.DEV),
