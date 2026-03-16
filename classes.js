@@ -61,7 +61,8 @@ export class Site {
 					name.includes("焼酎") || // sochu
 					name.includes("要冷蔵") || // refrigerated
 					name.includes("1800ml") || // common sake size
-					name.includes("720ml") // common sake size
+					name.includes("720ml") || // common sake size	
+					name.includes("在庫限りの衝撃価格") // limited time sale
 				) return false;
 				return true;
 			});
