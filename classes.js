@@ -25,6 +25,7 @@ export class Site {
 		this.delay = data.delay || 0;
 		this.counter = 0;
 		this.timeoutCounter = 0;
+		this.suppressConErrors = data.suppressConErrors;
 	}
 
 	get parseProductFn() {
