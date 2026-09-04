@@ -100,7 +100,7 @@ export default async function(browser, site) {
 				site.timeoutCounter = 0;
 				await sendError(err, site);
 			}
-		} else if (error.message.includes("net::ERR_CONNECTION_CLOSED") && site.suppressConErrors) {
+		} else if (error.message && error.message.includes("net::ERR_CONNECTION_CLOSED") && site.suppressConErrors) {
 			error("%s: Connection error suppressed...", site.domain);
 			return false;
 		} else {
